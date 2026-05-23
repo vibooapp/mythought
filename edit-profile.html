@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Edit Profile</title>
+
+  <link
+    rel="stylesheet"
+    href="assets/css/theme.css"
+  >
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+
+    .edit-page{
+
+      padding:20px;
+      padding-bottom:100px;
+
+    }
+
+    .top{
+
+      display:flex;
+      align-items:center;
+      gap:15px;
+      margin-bottom:30px;
+
+    }
+
+    .back{
+
+      font-size:28px;
+      text-decoration:none;
+      color:black;
+
+    }
+
+    .title{
+
+      font-size:32px;
+      font-weight:700;
+
+    }
+
+    .avatar-box{
+
+      display:flex;
+      justify-content:center;
+      margin-bottom:25px;
+
+    }
+
+    .avatar{
+
+      width:110px;
+      height:110px;
+      border-radius:50%;
+      object-fit:cover;
+
+    }
+
+    .input{
+
+      width:100%;
+      height:55px;
+      border:none;
+      background:#f3f3f3;
+      border-radius:16px;
+      padding:0 18px;
+      font-size:16px;
+      margin-bottom:15px;
+
+    }
+
+    .textarea{
+
+      width:100%;
+      min-height:120px;
+      border:none;
+      background:#f3f3f3;
+      border-radius:16px;
+      padding:18px;
+      font-size:16px;
+      resize:none;
+      margin-bottom:15px;
+
+    }
+
+    .save-btn{
+
+      width:100%;
+      height:55px;
+      border:none;
+      background:black;
+      color:white;
+      border-radius:18px;
+      font-size:17px;
+      font-weight:600;
+
+    }
+
+  </style>
+
+</head>
+<body>
+
+  <div class="edit-page">
+
+    <!-- TOP -->
+
+    <div class="top">
+
+      <a
+        href="profile.html"
+        class="back"
+      >
+        ←
+      </a>
+
+      <div class="title">
+        Edit Profile
+      </div>
+
+    </div>
+
+    <!-- AVATAR -->
+
+    <div class="avatar-box">
+
+      <img
+        id="avatarPreview"
+        class="avatar"
+        src="https://i.pravatar.cc/150?img=12"
+      >
+
+    </div>
+
+    <input
+      type="file"
+      id="avatarInput"
+      accept="image/*"
+    >
+
+    <!-- FORM -->
+
+    <input
+      type="text"
+      id="name"
+      class="input"
+      placeholder="Full name"
+    >
+
+    <input
+      type="text"
+      id="username"
+      class="input"
+      placeholder="Username"
+    >
+
+    <textarea
+      id="bio"
+      class="textarea"
+      placeholder="Bio"
+    ></textarea>
+
+    <button
+      id="saveBtn"
+      class="save-btn"
+    >
+      Save Changes
+    </button>
+
+  </div>
+
+  <script src="assets/js/supabase.js"></script>
+
+  <script>
+
+    let currentUser = null
+
+    let avatarUrl = ""
+
+    async function loadProfile(){
+
+      const { data:{ user } } =
+      await supabaseClient.auth.getUser()
+
+      if(!user){
+
+        window.location.href =
+        "login.html"
+
+        return
+
+      }
+
+      currentUser = user
+
+      const { data:profile } =
+      await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single()
+
+      document.getElementById("name")
+      .value =
+      profile?.full_name || ""
+
+      document.getElementById("username")
+      .value =
+      profile?.username || ""
+
+      document.getElementById("bio")
+      .value =
+      profile?.bio || ""
+
+      avatarUrl =
+      profile?.avatar_url || ""
+
+      document.getElementById("avatarPreview")
+      .src =
+      avatarUrl ||
+      "https://i.pravatar.cc/150?img=12"
+
+    }
+
+    loadProfile()
+
+    // PREVIEW IMAGE
+
+    document
+    .getElementById("avatarInput")
+    .addEventListener("change", (e)=>{
+
+      const file = e.target.files[0]
+
+      if(file){
+
+        document.getElementById("avatarPreview")
+        .src =
+        URL.createObjectURL(file)
+
+      }
+
+    })
+
+    // SAVE PROFILE
+
+    document
+    .getElementById("saveBtn")
+    .addEventListener("click", async ()=>{
+
+      const name =
+      document.getElementById("name").value
+
+      const username =
+      document.getElementById("username").value
+
+      const bio =
+      document.getElementById("bio").value
+
+      const avatarFile =
+      document.getElementById("avatarInput")
+      .files[0]
+
+      // AVATAR UPLOAD
+
+      if(avatarFile){
+
+        const fileName =
+        Date.now() + avatarFile.name
+
+        const { error:uploadError } =
+        await supabaseClient.storage
+        .from("posts")
+        .upload(fileName, avatarFile)
+
+        if(uploadError){
+
+          alert(uploadError.message)
+
+          return
+
+        }
+
+        const { data } =
+        supabaseClient.storage
+        .from("posts")
+        .getPublicUrl(fileName)
+
+        avatarUrl =
+        data.publicUrl
+
+      }
+
+      // UPDATE PROFILE
+
+      const { error } =
+      await supabaseClient
+      .from("profiles")
+      .update({
+
+        full_name:name,
+
+        username:username,
+
+        bio:bio,
+
+        avatar_url:avatarUrl
+
+      })
+      .eq("id", currentUser.id)
+
+      if(error){
+
+        alert(error.message)
+
+        return
+
+      }
+
+      alert("Profile updated 🔥")
+
+      window.location.href =
+      "profile.html"
+
+    })
+
+  </script>
+
+</body>
+</html>

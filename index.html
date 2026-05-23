@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>My Thought</title>
+
+  <link rel="stylesheet" href="assets/css/feed.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+</head>
+<body>
+
+  <header class="topbar">
+
+    <h2>My Thought</h2>
+
+    <button id="logoutBtn">
+      Logout
+    </button>
+
+  </header>
+
+  <section class="stories">
+
+    <div class="story">
+      <img src="https://i.pravatar.cc/150?img=1">
+    </div>
+
+    <div class="story">
+      <img src="https://i.pravatar.cc/150?img=2">
+    </div>
+
+    <div class="story">
+      <img src="https://i.pravatar.cc/150?img=3">
+    </div>
+
+    <div class="story">
+      <img src="https://i.pravatar.cc/150?img=4">
+    </div>
+
+  </section>
+
+  <main id="postsContainer"></main>
+
+  <nav class="bottom-nav">
+
+    <a href="index.html">🏠</a>
+
+    <a href="create-post.html">➕</a>
+
+    <a href="profile.html">👤</a>
+
+  </nav>
+
+  <script src="assets/js/supabase.js"></script>
+
+<script>
+
+  async function checkUser(){
+
+    const { data:{ user } } =
+    await supabaseClient.auth.getUser()
+
+    if(!user){
+
+      window.location.href = "login.html"
+
+    }
+
+  }
+
+  checkUser()
+
+  async function loadPosts(){
+
+    const { data:posts, error } =
+    await supabaseClient
+    .from("posts")
+    .select("*")
+    .order("id", { ascending:false })
+
+    console.log(posts)
+
+    const postsContainer =
+    document.getElementById("postsContainer")
+
+    postsContainer.innerHTML = ""
+
+    for(const post of posts){
+
+      // PROFILE FETCH
+
+      const { data:profile } =
+      await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("id", post.user_id)
+      .single()
+
+      postsContainer.innerHTML += `
+
+        <div class="post-card">
+
+          <div class="post-top">
+
+            <img
+              class="profile-pic"
+              src="https://i.pravatar.cc/150"
+            >
+
+            <h4>
+              ${profile?.full_name || "User"}
+            </h4>
+
+          </div>
+            ${
+
+  post.image_url
+
+  ?
+
+  `
+
+  <img
+    class="post-image"
+    src="${post.image_url}"
+  >
+
+  `
+
+  :
+
+  ""
+
+}
+            
+
+          <div class="post-actions">
+
+            ❤️ 🤍 💬
+
+          </div>
+
+          <p class="caption">
+
+            ${post.caption || ""}
+
+          </p>
+
+        </div>
+
+      `
+
+    }
+
+  }
+
+  loadPosts()
+
+  document.getElementById("logoutBtn")
+  .addEventListener("click", async ()=>{
+
+    await supabaseClient.auth.signOut()
+
+    window.location.href = "login.html"
+
+  })
+
+</script>
+</body>
+</html>

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>My Thought</title>
+
+<link
+href="https://fonts.googleapis.com/icon?family=Material+Icons"
+rel="stylesheet"
+/>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial;
+}
+
+body{
+  background:#fff;
+  color:#000;
+  padding-bottom:80px;
+}
+
+/* TOPBAR */
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:18px;
+  border-bottom:1px solid #eee;
+  position:sticky;
+  top:0;
+  background:#fff;
+  z-index:100;
+}
+
+.logo{
+  font-size:24px;
+  font-weight:bold;
+}
+
+.top-icons{
+  display:flex;
+  gap:18px;
+}
+
+.top-icons a{
+  text-decoration:none;
+  color:#000;
+}
+
+.material-icons{
+  font-size:30px;
+}
+
+/* FEED */
+
+.feed{
+  width:100%;
+}
+
+.post{
+  padding:18px;
+  border-bottom:1px solid #eee;
+}
+
+.post-top{
+  display:flex;
+  gap:12px;
+}
+
+.avatar{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.post-content{
+  width:100%;
+}
+
+.username{
+  font-weight:bold;
+  font-size:15px;
+  margin-bottom:6px;
+}
+
+.caption{
+  font-size:15px;
+  line-height:1.5;
+  margin-bottom:12px;
+}
+
+.post-image{
+  width:100%;
+  border-radius:18px;
+  margin-top:10px;
+}
+
+/* ACTIONS */
+
+.post-actions{
+  display:flex;
+  gap:22px;
+  margin-top:14px;
+}
+
+.action-btn{
+  cursor:pointer;
+  font-size:30px;
+  user-select:none;
+  transition:0.2s;
+}
+
+.action-btn:hover{
+  transform:scale(1.1);
+}
+
+.liked{
+  color:red;
+}
+
+.likes-count{
+  margin-top:10px;
+  font-size:14px;
+  font-weight:600;
+}
+
+/* BOTTOM NAV */
+
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#fff;
+  border-top:1px solid #ddd;
+  display:flex;
+  justify-content:space-around;
+  padding:12px 0;
+}
+
+.bottom-nav a{
+  color:#000;
+  text-decoration:none;
+}
+
+.bottom-nav .material-icons{
+  font-size:34px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- TOPBAR -->
+
+<header class="topbar">
+
+  <div class="logo">
+    My Thought
+  </div>
+
+  <div class="top-icons">
+
+    <a href="search.html">
+      <span class="material-icons">
+        search
+      </span>
+    </a>
+
+  </div>
+
+</header>
+
+<!-- FEED -->
+
+<main
+class="feed"
+id="postsContainer"
+>
+
+</main>
+
+<!-- BOTTOM NAV -->
+
+<nav class="bottom-nav">
+
+  <a href="feed.html">
+    <span class="material-icons">
+      home
+    </span>
+  </a>
+
+  <a href="search.html">
+    <span class="material-icons">
+      search
+    </span>
+  </a>
+
+  <a href="create-post.html">
+    <span class="material-icons">
+      add_circle
+    </span>
+  </a>
+
+  <a href="profile.html">
+    <span class="material-icons">
+      person
+    </span>
+  </a>
+
+</nav>
+
+<script src="assets/js/supabase.js"></script>
+
+<script>
+
+async function checkUser(){
+
+  const { data:{ user } } =
+  await supabaseClient.auth.getUser()
+
+  if(!user){
+
+    window.location.href =
+    "login.html"
+
+  }
+
+}
+
+checkUser()
+
+async function loadPosts(){
+
+  const postsContainer =
+  document.getElementById(
+    "postsContainer"
+  )
+
+  postsContainer.innerHTML =
+  `
+    <div style="
+      padding:20px;
+      text-align:center;
+    ">
+      Loading...
+    </div>
+  `
+
+  const { data:posts, error } =
+  await supabaseClient
+  .from("posts")
+  .select("*")
+  .order("id", {
+    ascending:false
+  })
+
+  postsContainer.innerHTML = ""
+
+  if(posts.length === 0){
+
+    postsContainer.innerHTML =
+    `
+      <div style="
+        padding:20px;
+      ">
+        No posts yet
+      </div>
+    `
+
+  }
+
+  for(const post of posts){
+
+    // PROFILE
+
+    const { data:profile } =
+    await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", post.user_id)
+    .single()
+
+    postsContainer.innerHTML +=
+
+    `
+      <div class="post">
+
+        <div class="post-top">
+
+          <img
+            class="avatar"
+            src="${
+              profile?.avatar_url
+              ||
+              'https://i.pravatar.cc/150?img=12'
+            }"
+          >
+
+          <div class="post-content">
+
+            <div class="username">
+
+              ${
+                profile?.username
+                ||
+                "user"
+              }
+
+            </div>
+
+            <div class="caption">
+
+              ${
+                post.caption
+                ||
+                ""
+              }
+
+            </div>
+
+            ${
+              post.image_url
+              ?
+
+              `
+                <img
+                  class="post-image"
+                  src="${post.image_url}"
+                >
+              `
+
+              :
+
+              ""
+
+            }
+
+            <!-- ACTIONS -->
+
+            <div class="post-actions">
+
+              <span
+                class="
+                  material-icons
+                  action-btn
+                  like-btn
+                "
+                data-post="${
+                  post.id
+                }"
+              >
+                favorite_border
+              </span>
+
+              <span class="
+                material-icons
+                action-btn
+              ">
+                chat_bubble_outline
+              </span>
+
+              <span class="
+                material-icons
+                action-btn
+              ">
+                repeat
+              </span>
+
+              <span class="
+                material-icons
+                action-btn
+              ">
+                send
+              </span>
+
+            </div>
+
+            <!-- LIKE COUNT -->
+
+            <div
+              class="likes-count"
+              id="likes-${
+                post.id
+              }"
+            >
+              0 likes
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    `
+
+  }
+
+  setupLikes()
+
+}
+
+loadPosts()
+
+/* LIKE SYSTEM */
+
+async function setupLikes(){
+
+  const { data:{ user } } =
+  await supabaseClient.auth.getUser()
+
+  const likeButtons =
+  document.querySelectorAll(
+    ".like-btn"
+  )
+
+  for(const btn of likeButtons){
+
+    const postId =
+    btn.dataset.post
+
+    // TOTAL LIKES
+
+    const { count } =
+    await supabaseClient
+    .from("likes")
+    .select("*", {
+
+      count:"exact",
+      head:true
+
+    })
+    .eq("post_id", postId)
+
+    document.getElementById(
+      `likes-${postId}`
+    ).innerText =
+    `${count || 0} likes`
+
+    // CHECK USER LIKE
+
+    const { data:liked } =
+    await supabaseClient
+    .from("likes")
+    .select("*")
+    .eq("post_id", postId)
+    .eq("user_id", user.id)
+    .maybeSingle()
+
+    if(liked){
+
+      btn.innerText =
+      "favorite"
+
+      btn.classList.add(
+        "liked"
+      )
+
+    }
+
+    // CLICK
+
+    btn.addEventListener(
+      "click",
+      async ()=>{
+
+        // REMOVE LIKE
+
+        if(
+          btn.classList.contains(
+            "liked"
+          )
+        ){
+
+          await supabaseClient
+          .from("likes")
+          .delete()
+          .eq("post_id", postId)
+          .eq("user_id", user.id)
+
+          btn.innerText =
+          "favorite_border"
+
+          btn.classList.remove(
+            "liked"
+          )
+
+        }
+
+        // ADD LIKE
+
+        else{
+
+          await supabaseClient
+          .from("likes")
+          .insert({
+
+            post_id:postId,
+            user_id:user.id
+
+          })
+
+          btn.innerText =
+          "favorite"
+
+          btn.classList.add(
+            "liked"
+          )
+
+        }
+
+        // UPDATE COUNT
+
+        const { count:newCount } =
+        await supabaseClient
+        .from("likes")
+        .select("*", {
+
+          count:"exact",
+          head:true
+
+        })
+        .eq("post_id", postId)
+
+        document.getElementById(
+          `likes-${postId}`
+        ).innerText =
+        `${newCount || 0} likes`
+
+      }
+
+    )
+
+  }
+
+}
+
+</script>
+
+</body>
+</html>

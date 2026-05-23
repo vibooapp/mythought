@@ -1,0 +1,165 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap');
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Outfit',sans-serif;
+}
+
+body{
+  background:#fff;
+  color:#000;
+}
+
+a{
+  text-decoration:none;
+  color:black;
+}
+
+.topbar{
+  width:100%;
+  height:65px;
+  padding:0 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid #eee;
+  position:sticky;
+  top:0;
+  background:white;
+  z-index:100;
+}
+
+.logo{
+  font-size:26px;
+  font-weight:700;
+}
+
+.icon-btn{
+  font-size:24px;
+  background:none;
+  border:none;
+}
+
+.feed{
+  padding-bottom:90px;
+}
+
+.post{
+  border-bottom:1px solid #eee;
+  padding:18px;
+}
+
+.post-top{
+  display:flex;
+  gap:12px;
+}
+
+.avatar{
+  width:45px;
+  height:45px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.post-content{
+  flex:1;
+}
+
+.username{
+  font-weight:600;
+  font-size:15px;
+}
+
+.caption{
+  margin-top:5px;
+  line-height:1.5;
+  font-size:15px;
+}
+
+.post-image{
+  width:100%;
+  border-radius:18px;
+  margin-top:12px;
+}
+
+.post-actions{
+  display:flex;
+  gap:18px;
+  font-size:23px;
+  margin-top:14px;
+}
+
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  height:70px;
+  background:white;
+  border-top:1px solid #eee;
+  display:flex;
+  align-items:center;
+  justify-content:space-around;
+}
+
+.bottom-nav a{
+  font-size:28px;
+}
+
+.search-box{
+  width:100%;
+  padding:14px 18px;
+  border:none;
+  background:#f3f3f3;
+  border-radius:15px;
+  margin-top:15px;
+  font-size:16px;
+}
+
+.user-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:15px 0;
+  border-bottom:1px solid #eee;
+}
+
+.follow-btn{
+  background:black;
+  color:white;
+  border:none;
+  padding:10px 25px;
+  border-radius:12px;
+  font-weight:600;
+}
+
+.profile-header{
+  padding:20px;
+}
+
+.profile-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.big-avatar{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+}
+
+.bio{
+  margin-top:10px;
+  color:#555;
+}
+
+.edit-btn{
+  width:100%;
+  padding:12px;
+  border:1px solid #ddd;
+  border-radius:14px;
+  margin-top:20px;
+  background:white;
+}

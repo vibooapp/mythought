@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Search</title>
+
+  <link
+    rel="stylesheet"
+    href="assets/css/theme.css"
+  >
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+
+    .search-page{
+
+      padding:20px;
+      padding-bottom:100px;
+
+    }
+
+    .search-top{
+
+      display:flex;
+      align-items:center;
+      gap:15px;
+
+    }
+
+    .back-btn{
+
+      font-size:28px;
+      text-decoration:none;
+      color:black;
+
+    }
+
+    .search-title{
+
+      font-size:38px;
+      font-weight:700;
+
+    }
+
+    .search-input{
+
+      width:100%;
+      height:55px;
+      border:none;
+      background:#f3f3f3;
+      border-radius:18px;
+      padding:0 18px;
+      font-size:17px;
+      margin-top:20px;
+
+    }
+
+    .users{
+
+      margin-top:20px;
+
+    }
+
+    .user-card{
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:16px 0;
+      border-bottom:1px solid #eee;
+
+    }
+
+    .user-left{
+
+      display:flex;
+      gap:12px;
+      align-items:center;
+
+    }
+
+    .user-avatar{
+
+      width:55px;
+      height:55px;
+      border-radius:50%;
+      object-fit:cover;
+
+    }
+
+    .user-name{
+
+      font-size:17px;
+      font-weight:600;
+
+    }
+
+    .user-bio{
+
+      color:#777;
+      font-size:14px;
+      margin-top:3px;
+
+    }
+
+    .follow-btn{
+
+      background:black;
+      color:white;
+      border:none;
+      border-radius:14px;
+      padding:11px 22px;
+      font-size:15px;
+      font-weight:600;
+
+    }
+
+  </style>
+
+</head>
+<body>
+
+  <div class="search-page">
+
+    <!-- TOP -->
+
+    <div class="search-top">
+
+      <a
+        href="feed.html"
+        class="back-btn"
+      >
+        ←
+      </a>
+
+      <div class="search-title">
+
+        Search
+
+      </div>
+
+    </div>
+
+    <!-- SEARCH -->
+
+    <input
+      type="text"
+      id="searchInput"
+      class="search-input"
+      placeholder="Search users"
+    >
+
+    <!-- USERS -->
+
+    <div
+      class="users"
+      id="usersContainer"
+    >
+
+    </div>
+
+  </div>
+
+  <!-- NAVBAR -->
+
+  <nav class="bottom-nav">
+
+    <a href="feed.html">🏠</a>
+
+    <a href="search.html">🔍</a>
+
+    <a href="create-post.html">➕</a>
+
+    <a href="profile.html">👤</a>
+
+  </nav>
+
+  <script src="assets/js/supabase.js"></script>
+
+  <script>
+
+    async function loadUsers(search = ""){
+
+      const usersContainer =
+      document.getElementById("usersContainer")
+
+      usersContainer.innerHTML =
+      "Loading..."
+
+      let query =
+      supabaseClient
+      .from("profiles")
+      .select("*")
+
+      if(search){
+
+        query =
+        query.ilike(
+          "username",
+          `%${search}%`
+        )
+
+      }
+
+      const { data:users, error } =
+      await query
+
+      console.log(users)
+
+      usersContainer.innerHTML = ""
+
+      if(users.length === 0){
+
+        usersContainer.innerHTML = `
+          <p>No users found</p>
+        `
+
+      }
+
+      for(const user of users){
+
+        let isFollowing = false
+
+if(currentUser){
+
+  const { data:followData } =
+  await supabaseClient
+  .from("follows")
+  .select("*")
+  .eq("follower_id", currentUser.id)
+  .eq("following_id", user.id)
+  .maybeSingle()
+
+  isFollowing = !!followData
+
+}
+
+        usersContainer.innerHTML += `
+
+          <div class="user-card">
+
+            <div class="user-left">
+
+              <img
+                class="user-avatar"
+                src="${
+                  user.avatar_url ||
+                  'https://i.pravatar.cc/150?img=12'
+                }"
+              >
+
+              <div>
+
+                <div class="user-name">
+
+                  ${
+                    user.username ||
+                    "user"
+                  }
+
+                </div>
+
+                <div class="user-bio">
+
+                  ${
+                    user.bio ||
+                    "No bio yet"
+                  }
+
+                </div>
+
+              </div>
+
+            </div>
+
+<button
+  class="follow-btn"
+  onclick="toggleFollow('${user.id}')"
+  id="follow-${user.id}"
+>
+  ${isFollowing ? "Following" : "Follow"}
+</button>
+
+          </div>
+
+        `
+
+      }
+
+    }
+
+    loadUsers()
+
+    // SEARCH
+
+    document
+    .getElementById("searchInput")
+    .addEventListener("input", (e)=>{
+
+      loadUsers(e.target.value)
+
+    })
+
+
+
+    // CURRENT USER
+
+    let currentUser = null
+
+    async function getCurrentUser(){
+
+      const { data:{ user } } =
+      await supabaseClient.auth.getUser()
+
+      currentUser = user
+
+    }
+
+    getCurrentUser()
+
+    // FOLLOW / UNFOLLOW
+
+    async function toggleFollow(userId){
+
+      if(userId === currentUser.id){
+
+        alert("You cannot follow yourself")
+
+        return
+
+      }
+
+      const button =
+      document.getElementById(`follow-${userId}`)
+
+      // CHECK ALREADY FOLLOWING
+
+      const { data:existing } =
+      await supabaseClient
+      .from("follows")
+      .select("*")
+      .eq("follower_id", currentUser.id)
+      .eq("following_id", userId)
+      .maybeSingle()
+
+      // UNFOLLOW
+
+      if(existing){
+
+        await supabaseClient
+        .from("follows")
+        .delete()
+        .eq("id", existing.id)
+
+        button.innerText = "Follow"
+
+        return
+
+      }
+
+      // FOLLOW
+
+      await supabaseClient
+      .from("follows")
+      .insert([{
+
+        follower_id: currentUser.id,
+
+        following_id: userId
+
+      }])
+
+      button.innerText = "Following"
+
+    }
+
+  </script>
+
+</body>
+</html>

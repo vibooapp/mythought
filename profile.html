@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Profile</title>
+
+  <link
+    rel="stylesheet"
+    href="assets/css/theme.css"
+  >
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+
+    body{
+
+      margin:0;
+      font-family:sans-serif;
+      background:white;
+      padding-bottom:90px;
+
+    }
+
+    .topbar{
+
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:20px;
+
+    }
+
+    .logo{
+
+      font-size:28px;
+      font-weight:700;
+
+    }
+
+    .icons{
+
+      display:flex;
+      gap:20px;
+      font-size:24px;
+
+    }
+
+    .profile-section{
+
+      padding:20px;
+
+    }
+
+    .profile-header{
+
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      margin-bottom:25px;
+
+    }
+
+    .profile-avatar{
+
+      width:90px;
+      height:90px;
+      border-radius:50%;
+      object-fit:cover;
+
+    }
+
+    #fullName{
+
+      margin:0;
+      font-size:30px;
+
+    }
+
+    #username{
+
+      color:gray;
+      margin-top:5px;
+
+    }
+
+    #bio{
+
+      margin-top:15px;
+      font-size:15px;
+
+    }
+
+    .stats{
+
+      display:flex;
+      gap:18px;
+      margin-top:15px;
+      font-size:14px;
+
+    }
+
+    .edit-btn{
+
+      width:100%;
+      height:50px;
+      border:none;
+      border-radius:14px;
+      background:black;
+      color:white;
+      font-size:16px;
+      font-weight:600;
+      margin-top:20px;
+
+    }
+
+        .posts-container{
+
+  margin-top:25px;
+
+}
+
+.post-card{
+
+  border-top:1px solid #eee;
+  padding:15px 0;
+
+}
+
+.post-top{
+
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:12px;
+
+}
+
+.post-user-pic{
+
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  object-fit:cover;
+
+}
+
+.post-name{
+
+  font-weight:600;
+  font-size:15px;
+
+}
+
+.post-caption{
+
+  font-size:15px;
+  margin-bottom:12px;
+  line-height:1.5;
+
+}
+
+.post-image{
+
+  width:100%;
+  border-radius:18px;
+  margin-bottom:12px;
+
+}
+
+.post-actions{
+
+  display:flex;
+  gap:18px;
+  font-size:25px;
+
+}
+
+    .bottom-nav{
+
+      position:fixed;
+      bottom:0;
+      width:100%;
+      height:65px;
+      background:white;
+      display:flex;
+      justify-content:space-around;
+      align-items:center;
+      border-top:1px solid #ddd;
+
+    }
+
+    .bottom-nav a{
+
+      text-decoration:none;
+      font-size:28px;
+      color:#555;
+
+    }
+
+    .active{
+
+      color:black !important;
+
+    }
+
+  </style>
+
+</head>
+<body>
+
+  <!-- TOP -->
+
+  <div class="topbar">
+
+    <div class="logo">
+      My Thought
+    </div>
+
+    <div class="icons">
+
+      <span>🔍</span>
+
+      <span>☰</span>
+
+    </div>
+
+  </div>
+
+  <!-- PROFILE -->
+
+  <div class="profile-section">
+
+    <div class="profile-header">
+
+      <div>
+
+        <h1 id="fullName">
+          Loading...
+        </h1>
+
+        <p id="username">
+          @username
+        </p>
+
+        <p id="bio">
+          No bio yet
+        </p>
+
+        <div class="stats">
+
+          <span>
+            <b id="postsCount">0</b> posts
+          </span>
+
+          <span>
+            <b id="followersCount">0</b> followers
+          </span>
+
+          <span>
+            <b id="followingCount">0</b> following
+          </span>
+
+        </div>
+
+      </div>
+
+      <img
+        id="profileImage"
+        class="profile-avatar"
+        src="https://i.pravatar.cc/150"
+      >
+
+    </div>
+
+    <!-- EDIT -->
+
+    <button
+      class="edit-btn"
+      onclick="window.location.href='edit-profile.html'"
+    >
+      Edit Profile
+    </button>
+
+    <!-- POSTS -->
+
+    <div
+  id="postsContainer"
+  class="posts-container"
+></div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+
+  <div class="bottom-nav">
+
+    <a href="feed.html">🏠</a>
+
+    <a href="search.html">🔎</a>
+
+    <a href="create-post.html">➕</a>
+
+    <a href="profile.html" class="active">👤</a>
+
+  </div>
+
+  <script src="assets/js/supabase.js"></script>
+
+  <script>
+
+    async function loadProfile(){
+
+      const { data:{ user } } =
+      await supabaseClient.auth.getUser()
+
+      if(!user){
+
+        window.location.href =
+        "login.html"
+
+        return
+
+      }
+
+      // PROFILE DATA
+
+      const { data:profile } =
+      await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single()
+
+      // SHOW DATA
+
+      document.getElementById("fullName")
+      .innerText =
+      profile?.full_name || "User"
+
+      document.getElementById("username")
+      .innerText =
+      "@" + (profile?.username || "username")
+
+      document.getElementById("bio")
+      .innerText =
+      profile?.bio || "No bio yet"
+
+      document.getElementById("profileImage")
+      .src =
+      profile?.avatar_url ||
+      "https://i.pravatar.cc/150"
+
+      // POSTS COUNT
+
+      const { count } =
+      await supabaseClient
+      .from("posts")
+      .select("*", {
+        count:"exact",
+        head:true
+      })
+      .eq("user_id", user.id)
+
+      document.getElementById("postsCount")
+      .innerText =
+      count || 0
+
+      // FOLLOWERS COUNT
+
+      const { count:followerCount } =
+      await supabaseClient
+      .from("follows")
+      .select("*", {
+        count:"exact",
+        head:true
+      })
+      .eq("following_id", user.id)
+
+      document.getElementById("followersCount")
+      .innerText =
+      followerCount || 0
+
+      // FOLLOWING COUNT
+
+      const { count:followingCount } =
+      await supabaseClient
+      .from("follows")
+      .select("*", {
+        count:"exact",
+        head:true
+      })
+      .eq("follower_id", user.id)
+
+      document.getElementById("followingCount")
+      .innerText =
+      followingCount || 0
+
+      // LOAD POSTS
+
+      const { data:posts } =
+      await supabaseClient
+      .from("posts")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("id", {
+        ascending:false
+      })
+
+      const postsContainer =
+document.getElementById("postsContainer")
+
+postsContainer.innerHTML = ""
+
+for(const post of posts){
+
+  postsContainer.innerHTML += `
+
+    <div class="post-card">
+
+      <div class="post-top">
+
+        <img
+          class="post-user-pic"
+          src="${
+            profile?.avatar_url ||
+            'https://i.pravatar.cc/150'
+          }"
+        >
+
+        <div class="post-name">
+
+          ${
+            profile?.username ||
+            "user"
+          }
+
+        </div>
+
+      </div>
+
+      <div class="post-caption">
+
+        ${post.caption || ""}
+
+      </div>
+
+      ${
+        post.image_url
+        ?
+
+        `
+
+        <img
+          class="post-image"
+          src="${post.image_url}"
+        >
+
+        `
+
+        :
+
+        ""
+
+      }
+
+      <div class="post-actions">
+
+        ❤️ 💬 🔁 ✈️
+
+      </div>
+
+    </div>
+
+  `
+
+}
+    }
+
+    loadProfile()
+
+  </script>
+
+</body>
+</html>
