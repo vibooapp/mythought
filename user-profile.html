@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
+>
+
+<title>User Profile</title>
+
+<link
+href="https://fonts.googleapis.com/icon?family=Material+Icons"
+rel="stylesheet"
+/>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial;
+}
+
+body{
+  background:#fff;
+  color:#000;
+  padding-bottom:90px;
+}
+
+.topbar{
+  height:60px;
+  border-bottom:1px solid #eee;
+  display:flex;
+  align-items:center;
+  padding:0 16px;
+  gap:14px;
+  position:sticky;
+  top:0;
+  background:white;
+  z-index:100;
+}
+
+.back-btn{
+  font-size:28px;
+  cursor:pointer;
+}
+
+.top-username{
+  font-size:20px;
+  font-weight:700;
+}
+
+.profile-section{
+  padding:20px;
+}
+
+.profile-header{
+  display:flex;
+  gap:20px;
+  align-items:center;
+}
+
+.profile-avatar{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.profile-stats{
+  flex:1;
+  display:flex;
+  justify-content:space-around;
+}
+
+.stat{
+  text-align:center;
+}
+
+.stat-number{
+  font-size:20px;
+  font-weight:700;
+}
+
+.stat-label{
+  font-size:14px;
+}
+
+.profile-name{
+  margin-top:18px;
+  font-size:18px;
+  font-weight:700;
+}
+
+.profile-bio{
+  margin-top:8px;
+  line-height:1.5;
+  color:#444;
+}
+
+.profile-buttons{
+  display:flex;
+  gap:10px;
+  margin-top:18px;
+}
+
+.follow-btn,
+.message-btn{
+  flex:1;
+  height:42px;
+  border:none;
+  border-radius:12px;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.follow-btn{
+  background:black;
+  color:white;
+}
+
+.message-btn{
+  background:#f3f3f3;
+}
+
+.posts-feed{
+  margin-top:12px;
+}
+
+.post{
+  padding:18px;
+  border-top:1px solid #eee;
+}
+
+.post-top{
+  display:flex;
+  gap:12px;
+}
+
+.avatar{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.post-content{
+  flex:1;
+}
+
+.username{
+  font-size:15px;
+  font-weight:700;
+}
+
+.caption{
+  margin-top:6px;
+  line-height:1.5;
+  font-size:14px;
+}
+
+.post-image{
+  width:100%;
+  border-radius:14px;
+  margin-top:10px;
+}
+
+.post-actions{
+  display:flex;
+  gap:18px;
+  margin-top:12px;
+}
+
+.action-btn{
+  font-size:28px;
+  cursor:pointer;
+}
+
+.counts{
+  margin-top:10px;
+  font-size:14px;
+  font-weight:600;
+}
+
+.liked{
+  color:red;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="topbar">
+
+  <span
+    class="material-icons back-btn"
+    onclick="history.back()"
+  >
+    arrow_back
+  </span>
+
+  <div
+    class="top-username"
+    id="topUsername"
+  >
+    user
+  </div>
+
+</div>
+
+<div class="profile-section">
+
+  <div class="profile-header">
+
+    <img
+      id="profileAvatar"
+      class="profile-avatar"
+      src=""
+    >
+
+    <div class="profile-stats">
+
+      <div class="stat">
+
+        <div
+          class="stat-number"
+          id="postsCount"
+        >
+          0
+        </div>
+
+        <div class="stat-label">
+          Posts
+        </div>
+
+      </div>
+
+      <div class="stat">
+
+        <div
+          class="stat-number"
+          id="followersCount"
+        >
+          0
+        </div>
+
+        <div class="stat-label">
+          Followers
+        </div>
+
+      </div>
+
+      <div class="stat">
+
+        <div
+          class="stat-number"
+          id="followingCount"
+        >
+          0
+        </div>
+
+        <div class="stat-label">
+          Following
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div
+    class="profile-name"
+    id="profileName"
+  >
+    user
+  </div>
+
+  <div
+    class="profile-bio"
+    id="profileBio"
+  >
+    No bio yet
+  </div>
+
+  <div class="profile-buttons">
+
+    <button
+      class="follow-btn"
+      id="followBtn"
+    >
+      Follow
+    </button>
+
+    <button
+      class="message-btn"
+    >
+      Message
+    </button>
+
+  </div>
+
+</div>
+
+<div
+  class="posts-feed"
+  id="postsFeed"
+></div>
+
+<script src="assets/js/supabase.js"></script>
+
+<script>
+
+const params =
+new URLSearchParams(
+  window.location.search
+)
+
+const userId =
+params.get("id")
+
+loadProfile()
+
+// =====================
+// TIME AGO
+// =====================
+
+function timeAgo(dateString){
+
+  const seconds =
+  Math.floor(
+    (
+      new Date() -
+      new Date(dateString)
+    ) / 1000
+  )
+
+  let interval =
+  seconds / 31536000
+
+  if(interval > 1){
+    return Math.floor(interval) + "y"
+  }
+
+  interval = seconds / 2592000
+
+  if(interval > 1){
+    return Math.floor(interval) + "mo"
+  }
+
+  interval = seconds / 86400
+
+  if(interval > 1){
+    return Math.floor(interval) + "d"
+  }
+
+  interval = seconds / 3600
+
+  if(interval > 1){
+    return Math.floor(interval) + "h"
+  }
+
+  interval = seconds / 60
+
+  if(interval > 1){
+    return Math.floor(interval) + "m"
+  }
+
+  return "now"
+
+}
+
+// =====================
+// LOAD PROFILE
+// =====================
+
+async function loadProfile(){
+
+  const {
+    data:{ user }
+  } =
+  await supabaseClient
+  .auth
+  .getUser()
+
+  // PROFILE
+
+  const {
+    data:profile
+  } =
+  await supabaseClient
+  .from("profiles")
+  .select("*")
+  .eq("id", userId)
+  .single()
+
+  document.getElementById(
+    "profileAvatar"
+  ).src =
+
+  profile?.avatar_url ||
+  "https://i.pravatar.cc/150"
+
+  document.getElementById(
+    "profileName"
+  ).innerText =
+
+  profile?.username ||
+  "user"
+
+  document.getElementById(
+    "topUsername"
+  ).innerText =
+
+  profile?.username ||
+  "user"
+
+  document.getElementById(
+    "profileBio"
+  ).innerText =
+
+  profile?.bio ||
+  "No bio yet"
+
+  // POSTS
+
+  const {
+    data:posts
+  } =
+  await supabaseClient
+  .from("posts")
+  .select("*")
+  .eq("user_id", userId)
+  .order("id",{
+    ascending:false
+  })
+
+  document.getElementById(
+    "postsCount"
+  ).innerText =
+  posts?.length || 0
+
+  // FOLLOWERS COUNT
+
+  let {
+    count:followersCount
+  } =
+  await supabaseClient
+  .from("followers")
+  .select("id",{
+    count:"exact",
+    head:true
+  })
+  .eq("following_id", userId)
+
+  document.getElementById(
+    "followersCount"
+  ).innerText =
+  followersCount || 0
+
+  // FOLLOWING COUNT
+
+  const {
+    count:followingCount
+  } =
+  await supabaseClient
+  .from("followers")
+  .select("id",{
+    count:"exact",
+    head:true
+  })
+  .eq("follower_id", userId)
+
+  document.getElementById(
+    "followingCount"
+  ).innerText =
+  followingCount || 0
+
+  // FOLLOW BUTTON
+
+  const followBtn =
+  document.getElementById(
+    "followBtn"
+  )
+
+  if(user.id === userId){
+
+    followBtn.style.display =
+    "none"
+
+  }else{
+
+    const {
+      data:followData
+    } =
+    await supabaseClient
+    .from("followers")
+    .select("id")
+    .eq("follower_id", user.id)
+    .eq("following_id", userId)
+
+    let isFollowing =
+    followData &&
+    followData.length > 0
+
+    updateFollowBtn()
+
+    followBtn.onclick =
+    async ()=>{
+
+      followBtn.disabled = true
+
+      // UNFOLLOW
+
+      if(isFollowing){
+
+        await supabaseClient
+        .from("followers")
+        .delete()
+        .eq("follower_id", user.id)
+        .eq("following_id", userId)
+
+        isFollowing = false
+
+        followersCount--
+
+      }
+
+      // FOLLOW
+
+      else{
+
+        await supabaseClient
+        .from("followers")
+        .insert([{
+
+          follower_id:user.id,
+          following_id:userId
+
+        }])
+
+        isFollowing = true
+
+        followersCount++
+
+      }
+
+      document.getElementById(
+        "followersCount"
+      ).innerText =
+      followersCount
+
+      updateFollowBtn()
+
+      followBtn.disabled = false
+
+    }
+
+    function updateFollowBtn(){
+
+      if(isFollowing){
+
+        followBtn.innerText =
+        "Unfollow"
+
+        followBtn.style.background =
+        "#f3f3f3"
+
+        followBtn.style.color =
+        "#000"
+
+      }
+
+      else{
+
+        followBtn.innerText =
+        "Follow"
+
+        followBtn.style.background =
+        "#000"
+
+        followBtn.style.color =
+        "#fff"
+
+      }
+
+    }
+
+  }
+
+  // POSTS UI
+
+  const postsFeed =
+  document.getElementById(
+    "postsFeed"
+  )
+
+  postsFeed.innerHTML = ""
+
+  for(const post of posts){
+
+    // LIKES COUNT
+
+    const {
+      count:likesCount
+    } =
+    await supabaseClient
+    .from("likes")
+    .select("id",{
+      count:"exact",
+      head:true
+    })
+    .eq("post_id", post.id)
+
+    // USER LIKED
+
+    const {
+      data:likedData
+    } =
+    await supabaseClient
+    .from("likes")
+    .select("id")
+    .eq("post_id", post.id)
+    .eq("user_id", user.id)
+
+    const liked =
+    likedData &&
+    likedData.length > 0
+
+    postsFeed.innerHTML += `
+
+      <div class="post">
+
+        <div class="post-top">
+
+          <img
+            class="avatar"
+            src="${
+              profile?.avatar_url ||
+              'https://i.pravatar.cc/150'
+            }"
+          >
+
+          <div class="post-content">
+
+            <div class="username">
+
+              ${
+                profile?.username ||
+                "user"
+              }
+
+            </div>
+
+            <div class="caption">
+
+              ${
+                post.caption || ""
+              }
+
+            </div>
+
+            ${
+              post.image_url
+
+              ?
+
+              `
+                <img
+                  class="post-image"
+                  src="${post.image_url}"
+                >
+              `
+
+              :
+
+              ""
+
+            }
+
+            <div class="post-actions">
+
+              <span
+                class="
+                  material-icons
+                  action-btn
+                  like-btn
+                  ${
+                    liked
+                    ?
+                    "liked"
+                    :
+                    ""
+                  }
+                "
+                data-post="${
+                  post.id
+                }"
+              >
+
+                ${
+                  liked
+                  ?
+                  "favorite"
+                  :
+                  "favorite_border"
+                }
+
+              </span>
+
+            </div>
+
+            <div
+              class="counts"
+              id="likes-${
+                post.id
+              }"
+            >
+
+              ${
+                likesCount || 0
+              } likes
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    `
+
+  }
+
+  setupLikes()
+
+}
+
+// =====================
+// LIKE SYSTEM
+// =====================
+
+async function setupLikes(){
+
+  const {
+    data:{ user }
+  } =
+  await supabaseClient
+  .auth
+  .getUser()
+
+  const likeButtons =
+  document.querySelectorAll(
+    ".like-btn"
+  )
+
+  for(const btn of likeButtons){
+
+    btn.addEventListener(
+      "click",
+      async ()=>{
+
+        const postId =
+        Number(
+          btn.dataset.post
+        )
+
+        // CHECK
+
+        const {
+          data:likedData
+        } =
+        await supabaseClient
+        .from("likes")
+        .select("id")
+        .eq("post_id", postId)
+        .eq("user_id", user.id)
+
+        const liked =
+        likedData &&
+        likedData.length > 0
+
+        // UNLIKE
+
+        if(liked){
+
+          await supabaseClient
+          .from("likes")
+          .delete()
+          .eq("post_id", postId)
+          .eq("user_id", user.id)
+
+          btn.innerText =
+          "favorite_border"
+
+          btn.classList.remove(
+            "liked"
+          )
+
+        }
+
+        // LIKE
+
+        else{
+
+          await supabaseClient
+          .from("likes")
+          .insert([{
+
+            post_id:postId,
+            user_id:user.id
+
+          }])
+
+          btn.innerText =
+          "favorite"
+
+          btn.classList.add(
+            "liked"
+          )
+
+        }
+
+        // UPDATE COUNT
+
+        const {
+          count:newCount
+        } =
+        await supabaseClient
+        .from("likes")
+        .select("id",{
+          count:"exact",
+          head:true
+        })
+        .eq("post_id", postId)
+
+        document.getElementById(
+          `likes-${postId}`
+        ).innerText =
+
+        `${newCount || 0} likes`
+
+      }
+    )
+
+  }
+
+}
+
+</script>
+
+</body>
+</html>

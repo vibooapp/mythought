@@ -2,491 +2,980 @@
 <html lang="en">
 <head>
 
-  <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
+>
 
-  <title>Profile</title>
+<title>Profile</title>
 
-  <link
-    rel="stylesheet"
-    href="assets/css/theme.css"
-  >
+<link
+rel="stylesheet"
+href="assets/css/theme.css"
+>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link
+href="https://fonts.googleapis.com/icon?family=Material+Icons"
+rel="stylesheet"
+/>
 
-  <style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    body{
+<style>
 
-      margin:0;
-      font-family:sans-serif;
-      background:white;
-      padding-bottom:90px;
+body{
+  margin:0;
+  font-family:sans-serif;
+  background:white;
+  padding-bottom:90px;
+}
 
-    }
+/* TOPBAR */
 
-    .topbar{
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:20px;
+}
 
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:20px;
+.logo{
+  font-size:28px;
+  font-weight:700;
+}
 
-    }
+.icons{
+  display:flex;
+  gap:20px;
+  font-size:24px;
+}
 
-    .logo{
+/* PROFILE */
 
-      font-size:28px;
-      font-weight:700;
+.profile-section{
+  padding:20px;
+}
 
-    }
+.profile-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:25px;
+}
 
-    .icons{
+.profile-avatar{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  object-fit:cover;
+}
 
-      display:flex;
-      gap:20px;
-      font-size:24px;
+#fullName{
+  margin:0;
+  font-size:30px;
+}
 
-    }
+#username{
+  color:gray;
+  margin-top:5px;
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
 
-    .profile-section{
+#bio{
+  margin-top:15px;
+  font-size:15px;
+}
 
-      padding:20px;
+.stats{
+  display:flex;
+  gap:18px;
+  margin-top:15px;
+  font-size:14px;
+}
 
-    }
+.edit-btn{
+  width:100%;
+  height:50px;
+  border:none;
+  border-radius:14px;
+  background:black;
+  color:white;
+  font-size:16px;
+  font-weight:600;
+  margin-top:20px;
+  cursor:pointer;
+}
 
-    .profile-header{
+/* POSTS */
 
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      margin-bottom:25px;
-
-    }
-
-    .profile-avatar{
-
-      width:90px;
-      height:90px;
-      border-radius:50%;
-      object-fit:cover;
-
-    }
-
-    #fullName{
-
-      margin:0;
-      font-size:30px;
-
-    }
-
-    #username{
-
-      color:gray;
-      margin-top:5px;
-
-    }
-
-    #bio{
-
-      margin-top:15px;
-      font-size:15px;
-
-    }
-
-    .stats{
-
-      display:flex;
-      gap:18px;
-      margin-top:15px;
-      font-size:14px;
-
-    }
-
-    .edit-btn{
-
-      width:100%;
-      height:50px;
-      border:none;
-      border-radius:14px;
-      background:black;
-      color:white;
-      font-size:16px;
-      font-weight:600;
-      margin-top:20px;
-
-    }
-
-        .posts-container{
-
+.posts-container{
   margin-top:25px;
-
 }
 
 .post-card{
-
   border-top:1px solid #eee;
-  padding:15px 0;
-
+  padding:18px 0;
 }
 
 .post-top{
-
   display:flex;
-  align-items:center;
-  gap:10px;
-  margin-bottom:12px;
-
+  gap:12px;
 }
 
 .post-user-pic{
-
-  width:42px;
-  height:42px;
+  width:45px;
+  height:45px;
   border-radius:50%;
   object-fit:cover;
+}
 
+.post-content{
+  flex:1;
 }
 
 .post-name{
-
-  font-weight:600;
+  font-weight:700;
   font-size:15px;
-
+  display:flex;
+  align-items:center;
+  gap:5px;
 }
 
 .post-caption{
-
   font-size:15px;
-  margin-bottom:12px;
+  margin-top:6px;
   line-height:1.5;
-
 }
 
 .post-image{
-
   width:100%;
   border-radius:18px;
-  margin-bottom:12px;
-
+  margin-top:12px;
 }
 
 .post-actions{
-
   display:flex;
-  gap:18px;
-  font-size:25px;
-
+  gap:22px;
+  margin-top:14px;
 }
 
-    .bottom-nav{
+.action-btn{
+  font-size:30px;
+  cursor:pointer;
+  user-select:none;
+}
 
-      position:fixed;
-      bottom:0;
-      width:100%;
-      height:65px;
-      background:white;
-      display:flex;
-      justify-content:space-around;
-      align-items:center;
-      border-top:1px solid #ddd;
+.liked{
+  color:red;
+}
 
-    }
+.likes-count{
+  margin-top:8px;
+  font-size:14px;
+  font-weight:600;
+}
 
-    .bottom-nav a{
+/* COMMENT */
 
-      text-decoration:none;
-      font-size:28px;
-      color:#555;
+.comment-box{
+  display:flex;
+  gap:10px;
+  margin-top:14px;
+}
 
-    }
+.comment-input{
+  flex:1;
+  height:42px;
+  border:none;
+  background:#f3f3f3;
+  border-radius:12px;
+  padding:0 14px;
+  outline:none;
+}
 
-    .active{
+.comment-send-icon{
+  font-size:28px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+}
 
-      color:black !important;
+.comments-list{
+  margin-top:14px;
+}
 
-    }
+.comment-item{
+  display:flex;
+  gap:10px;
+  margin-top:16px;
+}
 
-  </style>
+.comment-avatar{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.comment-body{
+  flex:1;
+}
+
+.comment-top{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.comment-username{
+  font-size:14px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+
+.comment-time{
+  font-size:12px;
+  color:gray;
+}
+
+.comment-text{
+  margin-top:4px;
+  font-size:14px;
+  line-height:1.5;
+}
+
+/* BOTTOM NAV */
+
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#fff;
+  border-top:1px solid #ddd;
+  display:flex;
+  justify-content:space-around;
+  padding:12px 0;
+  z-index:999;
+}
+
+.bottom-nav a{
+  color:#000;
+  text-decoration:none;
+}
+
+.bottom-nav .material-icons{
+  font-size:34px;
+}
+
+</style>
 
 </head>
+
 <body>
 
-  <!-- TOP -->
+<!-- TOP -->
 
-  <div class="topbar">
+<div class="topbar">
 
-    <div class="logo">
-      My Thought
-    </div>
+  <div class="logo">
+    My Thought
+  </div>
 
-    <div class="icons">
+  <div class="icons">
 
-      <span>🔍</span>
+    <span class="material-icons">
+      search
+    </span>
 
-      <span>☰</span>
-
-    </div>
+    <span class="material-icons">
+      menu
+    </span>
 
   </div>
 
-  <!-- PROFILE -->
+</div>
 
-  <div class="profile-section">
+<!-- PROFILE -->
 
-    <div class="profile-header">
+<div class="profile-section">
 
-      <div>
+  <div class="profile-header">
 
-        <h1 id="fullName">
-          Loading...
-        </h1>
+    <div>
 
-        <p id="username">
-          @username
-        </p>
+      <h1 id="fullName">
+        Loading...
+      </h1>
 
-        <p id="bio">
-          No bio yet
-        </p>
+      <div id="username">
+        @username
+      </div>
 
-        <div class="stats">
+      <p id="bio">
+        No bio yet
+      </p>
 
-          <span>
-            <b id="postsCount">0</b> posts
-          </span>
+      <div class="stats">
 
-          <span>
-            <b id="followersCount">0</b> followers
-          </span>
+        <span>
+          <b id="postsCount">0</b> posts
+        </span>
 
-          <span>
-            <b id="followingCount">0</b> following
-          </span>
+        <span>
+          <b id="followersCount">0</b> followers
+        </span>
+
+        <span>
+          <b id="followingCount">0</b> following
+        </span>
+
+      </div>
+
+    </div>
+
+    <img
+      id="profileImage"
+      class="profile-avatar"
+      src="https://i.pravatar.cc/150"
+    >
+
+  </div>
+
+  <button
+    class="edit-btn"
+    onclick="
+      window.location.href=
+      'edit-profile.html'
+    "
+  >
+    Edit Profile
+  </button>
+
+  <!-- POSTS -->
+
+  <div
+    id="postsContainer"
+    class="posts-container"
+  ></div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+
+<nav class="bottom-nav">
+
+  <a href="feed.html">
+    <span class="material-icons">
+      home
+    </span>
+  </a>
+
+  <a href="search.html">
+    <span class="material-icons">
+      search
+    </span>
+  </a>
+
+  <a href="create-post.html">
+    <span class="material-icons">
+      add_circle
+    </span>
+  </a>
+
+  <a href="profile.html">
+    <span class="material-icons">
+      person
+    </span>
+  </a>
+
+</nav>
+
+<script src="assets/js/supabase.js"></script>
+
+<script>
+
+let commentsLimit = {}
+
+async function loadProfile(){
+
+  const { data:{ user } } =
+  await supabaseClient.auth.getUser()
+
+  if(!user){
+
+    window.location.href =
+    "login.html"
+
+    return
+
+  }
+
+  // PROFILE
+
+  const { data:profile } =
+  await supabaseClient
+  .from("profiles")
+  .select("*")
+  .eq("id", user.id)
+  .single()
+
+  // PROFILE UI
+
+  document.getElementById(
+    "fullName"
+  ).innerText =
+
+  profile?.full_name || "User"
+
+  document.getElementById(
+    "username"
+  ).innerHTML =
+
+  `
+    @${profile?.username || "user"}
+
+    ${
+      profile?.blue_tick_url
+      ?
+      `
+        <img
+          src="${profile.blue_tick_url}"
+          style="
+            width:18px;
+            height:18px;
+          "
+        >
+      `
+      :
+      ""
+    }
+  `
+
+  document.getElementById(
+    "bio"
+  ).innerText =
+
+  profile?.bio ||
+  "No bio yet"
+
+  document.getElementById(
+    "profileImage"
+  ).src =
+
+  profile?.avatar_url ||
+  "https://i.pravatar.cc/150"
+
+  // POSTS COUNT
+
+  const { count } =
+  await supabaseClient
+  .from("posts")
+  .select("*", {
+
+    count:"exact",
+    head:true
+
+  })
+  .eq("user_id", user.id)
+
+  document.getElementById(
+    "postsCount"
+  ).innerText = count || 0
+
+  // FOLLOWERS
+
+  const {
+    count:followerCount
+  } =
+  await supabaseClient
+  .from("follows")
+  .select("*", {
+
+    count:"exact",
+    head:true
+
+  })
+  .eq("following_id", user.id)
+
+  document.getElementById(
+    "followersCount"
+  ).innerText =
+  followerCount || 0
+
+  // FOLLOWING
+
+  const {
+    count:followingCount
+  } =
+  await supabaseClient
+  .from("follows")
+  .select("*", {
+
+    count:"exact",
+    head:true
+
+  })
+  .eq("follower_id", user.id)
+
+  document.getElementById(
+    "followingCount"
+  ).innerText =
+  followingCount || 0
+
+  // POSTS
+
+  const { data:posts } =
+  await supabaseClient
+  .from("posts")
+  .select("*")
+  .eq("user_id", user.id)
+  .order("id", {
+    ascending:false
+  })
+
+  const postsContainer =
+  document.getElementById(
+    "postsContainer"
+  )
+
+  postsContainer.innerHTML = ""
+
+  for(const post of posts){
+
+    // LIKE COUNT
+
+    const { count:likesCount } =
+    await supabaseClient
+    .from("likes")
+    .select("*", {
+
+      count:"exact",
+      head:true
+
+    })
+    .eq("post_id", post.id)
+
+    // CHECK LIKED
+
+    const { data:liked } =
+    await supabaseClient
+    .from("likes")
+    .select("*")
+    .eq("post_id", post.id)
+    .eq("user_id", user.id)
+    .maybeSingle()
+
+    postsContainer.innerHTML += `
+
+      <div class="post-card">
+
+        <div class="post-top">
+
+          <img
+            class="post-user-pic"
+            src="${
+              profile?.avatar_url ||
+              'https://i.pravatar.cc/150'
+            }"
+          >
+
+          <div class="post-content">
+
+            <div class="post-name">
+
+              ${
+                profile?.username ||
+                "user"
+              }
+
+              ${
+                profile?.blue_tick_url
+                ?
+                `
+                  <img
+                    src="${profile.blue_tick_url}"
+                    style="
+                      width:16px;
+                      height:16px;
+                    "
+                  >
+                `
+                :
+                ""
+              }
+
+            </div>
+
+            <div class="post-caption">
+
+              ${
+                post.caption || ""
+              }
+
+            </div>
+
+            ${
+              post.image_url
+              ?
+              `
+                <img
+                  class="post-image"
+                  src="${post.image_url}"
+                >
+              `
+              :
+              ""
+            }
+
+            <div class="post-actions">
+
+              <span
+                class="
+                  material-icons
+                  action-btn
+                  like-btn
+                  ${
+                    liked ? "liked" : ""
+                  }
+                "
+                data-post="${post.id}"
+              >
+                ${
+                  liked
+                  ?
+                  "favorite"
+                  :
+                  "favorite_border"
+                }
+              </span>
+
+              <span
+                class="
+                  material-icons
+                  action-btn
+                "
+              >
+                chat_bubble_outline
+              </span>
+
+              <span
+                class="
+                  material-icons
+                  action-btn
+                "
+              >
+                repeat
+              </span>
+
+              <span
+                class="
+                  material-icons
+                  action-btn
+                "
+              >
+                send
+              </span>
+
+            </div>
+
+            <div
+              class="likes-count"
+              id="likes-${post.id}"
+            >
+              ${
+                likesCount || 0
+              } likes
+            </div>
+
+            <!-- COMMENT BOX -->
+
+            <div class="comment-box">
+
+              <input
+                type="text"
+                class="comment-input"
+                id="comment-input-${post.id}"
+                placeholder="Write a comment..."
+              >
+
+              <span
+                class="
+                  material-icons
+                  comment-send-icon
+                "
+                onclick="addComment(${post.id})"
+              >
+                near_me
+              </span>
+
+            </div>
+
+            <!-- COMMENTS -->
+
+            <div
+              class="comments-list"
+              id="comments-${post.id}"
+            ></div>
+
+          </div>
 
         </div>
 
       </div>
 
-      <img
-        id="profileImage"
-        class="profile-avatar"
-        src="https://i.pravatar.cc/150"
-      >
+    `
 
-    </div>
+  }
 
-    <!-- EDIT -->
+  setupLikes()
 
-    <button
-      class="edit-btn"
-      onclick="window.location.href='edit-profile.html'"
-    >
-      Edit Profile
-    </button>
+  for(const post of posts){
 
-    <!-- POSTS -->
+    loadComments(post.id)
 
-    <div
-  id="postsContainer"
-  class="posts-container"
-></div>
+  }
 
-  </div>
+}
 
-  <!-- BOTTOM NAV -->
+loadProfile()
 
-  <div class="bottom-nav">
+// LIKE SYSTEM
 
-    <a href="feed.html">🏠</a>
+async function setupLikes(){
 
-    <a href="search.html">🔎</a>
+  const { data:{ user } } =
+  await supabaseClient.auth.getUser()
 
-    <a href="create-post.html">➕</a>
+  const likeButtons =
+  document.querySelectorAll(
+    ".like-btn"
+  )
 
-    <a href="profile.html" class="active">👤</a>
+  for(const btn of likeButtons){
 
-  </div>
+    btn.addEventListener(
+      "click",
+      async ()=>{
 
-  <script src="assets/js/supabase.js"></script>
+        const postId =
+        btn.dataset.post
 
-  <script>
+        // CHECK LIKE
 
-    async function loadProfile(){
+        if(
+          btn.classList.contains(
+            "liked"
+          )
+        ){
 
-      const { data:{ user } } =
-      await supabaseClient.auth.getUser()
+          await supabaseClient
+          .from("likes")
+          .delete()
+          .eq("post_id", postId)
+          .eq("user_id", user.id)
 
-      if(!user){
+          btn.classList.remove(
+            "liked"
+          )
 
-        window.location.href =
-        "login.html"
+          btn.innerText =
+          "favorite_border"
 
-        return
+        }
+
+        else{
+
+          await supabaseClient
+          .from("likes")
+          .insert({
+
+            post_id:postId,
+            user_id:user.id
+
+          })
+
+          btn.classList.add(
+            "liked"
+          )
+
+          btn.innerText =
+          "favorite"
+
+        }
+
+        // UPDATE COUNT
+
+        const {
+          count:newCount
+        } =
+        await supabaseClient
+        .from("likes")
+        .select("*", {
+
+          count:"exact",
+          head:true
+
+        })
+        .eq("post_id", postId)
+
+        document.getElementById(
+          `likes-${postId}`
+        ).innerText =
+
+        `${newCount || 0} likes`
 
       }
+    )
 
-      // PROFILE DATA
+  }
 
-      const { data:profile } =
-      await supabaseClient
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single()
+}
 
-      // SHOW DATA
+// LOAD COMMENTS
 
-      document.getElementById("fullName")
-      .innerText =
-      profile?.full_name || "User"
+async function loadComments(postId){
 
-      document.getElementById("username")
-      .innerText =
-      "@" + (profile?.username || "username")
+  const commentsContainer =
+  document.getElementById(
+    `comments-${postId}`
+  )
 
-      document.getElementById("bio")
-      .innerText =
-      profile?.bio || "No bio yet"
+  const { data:comments } =
+  await supabaseClient
+  .from("comments")
+  .select("*")
+  .eq("post_id", postId)
+  .is("parent_id", null)
+  .order("id", {
+    ascending:false
+  })
 
-      document.getElementById("profileImage")
-      .src =
-      profile?.avatar_url ||
-      "https://i.pravatar.cc/150"
+  commentsContainer.innerHTML = ""
 
-      // POSTS COUNT
+  if(!comments){
 
-      const { count } =
-      await supabaseClient
-      .from("posts")
-      .select("*", {
-        count:"exact",
-        head:true
-      })
-      .eq("user_id", user.id)
+    return
 
-      document.getElementById("postsCount")
-      .innerText =
-      count || 0
+  }
 
-      // FOLLOWERS COUNT
+  for(const comment of comments){
 
-      const { count:followerCount } =
-      await supabaseClient
-      .from("follows")
-      .select("*", {
-        count:"exact",
-        head:true
-      })
-      .eq("following_id", user.id)
+    const { data:userProfile } =
+    await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", comment.user_id)
+    .single()
 
-      document.getElementById("followersCount")
-      .innerText =
-      followerCount || 0
+    commentsContainer.innerHTML += `
 
-      // FOLLOWING COUNT
-
-      const { count:followingCount } =
-      await supabaseClient
-      .from("follows")
-      .select("*", {
-        count:"exact",
-        head:true
-      })
-      .eq("follower_id", user.id)
-
-      document.getElementById("followingCount")
-      .innerText =
-      followingCount || 0
-
-      // LOAD POSTS
-
-      const { data:posts } =
-      await supabaseClient
-      .from("posts")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("id", {
-        ascending:false
-      })
-
-      const postsContainer =
-document.getElementById("postsContainer")
-
-postsContainer.innerHTML = ""
-
-for(const post of posts){
-
-  postsContainer.innerHTML += `
-
-    <div class="post-card">
-
-      <div class="post-top">
+      <div class="comment-item">
 
         <img
-          class="post-user-pic"
+          class="comment-avatar"
           src="${
-            profile?.avatar_url ||
+            userProfile?.avatar_url ||
             'https://i.pravatar.cc/150'
           }"
         >
 
-        <div class="post-name">
+        <div class="comment-body">
 
-          ${
-            profile?.username ||
-            "user"
-          }
+          <div class="comment-top">
+
+            <div class="comment-username">
+
+              ${
+                userProfile?.username ||
+                "user"
+              }
+
+              ${
+                userProfile?.blue_tick_url
+                ?
+                `
+                  <img
+                    src="${userProfile.blue_tick_url}"
+                    style="
+                      width:14px;
+                      height:14px;
+                    "
+                  >
+                `
+                :
+                ""
+              }
+
+            </div>
+
+            <div class="comment-time">
+
+              now
+
+            </div>
+
+          </div>
+
+          <div class="comment-text">
+
+            ${comment.comment}
+
+          </div>
 
         </div>
 
       </div>
 
-      <div class="post-caption">
+    `
 
-        ${post.caption || ""}
-
-      </div>
-
-      ${
-        post.image_url
-        ?
-
-        `
-
-        <img
-          class="post-image"
-          src="${post.image_url}"
-        >
-
-        `
-
-        :
-
-        ""
-
-      }
-
-      <div class="post-actions">
-
-        ❤️ 💬 🔁 ✈️
-
-      </div>
-
-    </div>
-
-  `
+  }
 
 }
-    }
 
-    loadProfile()
+// ADD COMMENT
 
-  </script>
+async function addComment(postId){
+
+  const { data:{ user } } =
+  await supabaseClient.auth.getUser()
+
+  const input =
+  document.getElementById(
+    `comment-input-${postId}`
+  )
+
+  const text =
+  input.value.trim()
+
+  if(!text){
+
+    return
+
+  }
+
+  await supabaseClient
+  .from("comments")
+  .insert({
+
+    post_id:postId,
+    user_id:user.id,
+    comment:text
+
+  })
+
+  input.value = ""
+
+  loadComments(postId)
+
+}
+
+</script>
 
 </body>
 </html>

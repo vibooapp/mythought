@@ -2,387 +2,680 @@
 <html lang="en">
 <head>
 
-  <meta charset="UTF-8">
+<meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
 
-  <title>Search</title>
+<title>Search</title>
 
-  <link
-    rel="stylesheet"
-    href="assets/css/theme.css"
-  >
+<link
+href="https://fonts.googleapis.com/icon?family=Material+Icons"
+rel="stylesheet"
+/>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
+<style>
 
-    .search-page{
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial;
+}
 
-      padding:20px;
-      padding-bottom:100px;
+body{
+  background:#fff;
+  color:#000;
+  padding-bottom:90px;
+}
 
-    }
+/* TOPBAR */
 
-    .search-top{
+.topbar{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:18px;
+  border-bottom:1px solid #eee;
+  position:sticky;
+  top:0;
+  background:#fff;
+  z-index:100;
+}
 
-      display:flex;
-      align-items:center;
-      gap:15px;
+.back-btn{
+  color:black;
+  text-decoration:none;
+}
 
-    }
+.back-btn .material-icons{
+  font-size:32px;
+}
 
-    .back-btn{
+.page-title{
+  font-size:28px;
+  font-weight:700;
+}
 
-      font-size:28px;
-      text-decoration:none;
-      color:black;
+/* SEARCH */
 
-    }
+.search-wrapper{
+  padding:18px;
+}
 
-    .search-title{
+.search-input{
+  width:100%;
+  height:55px;
+  border:none;
+  background:black;
+  color:white;
+  border-radius:18px;
+  padding:0 18px;
+  font-size:16px;
+  outline:none;
+}
 
-      font-size:38px;
-      font-weight:700;
+.search-input::placeholder{
+  color:#bbb;
+}
 
-    }
+.section-title{
+  margin-top:24px;
+  font-size:18px;
+  font-weight:700;
+}
 
-    .search-input{
+/* USERS */
 
-      width:100%;
-      height:55px;
-      border:none;
-      background:#f3f3f3;
-      border-radius:18px;
-      padding:0 18px;
-      font-size:17px;
-      margin-top:20px;
+.users{
+  margin-top:10px;
+}
 
-    }
+.user-card{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:18px 0;
+  border-bottom:1px solid #eee;
+}
 
-    .users{
+.user-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  text-decoration:none;
+  color:black;
+  flex:1;
+}
 
-      margin-top:20px;
+.user-avatar{
+  width:55px;
+  height:55px;
+  border-radius:50%;
+  object-fit:cover;
+}
 
-    }
+.user-info{
+  flex:1;
+}
 
-    .user-card{
+.user-name{
+  font-size:16px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
 
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:16px 0;
-      border-bottom:1px solid #eee;
+.user-bio{
+  margin-top:4px;
+  color:#777;
+  font-size:14px;
+  line-height:1.4;
+}
 
-    }
+.follow-btn{
+  border:none;
+  background:black;
+  color:white;
+  height:42px;
+  padding:0 20px;
+  border-radius:14px;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+}
 
-    .user-left{
+.following{
+  background:#f3f3f3;
+  color:black;
+}
 
-      display:flex;
-      gap:12px;
-      align-items:center;
+/* EMPTY */
 
-    }
+.empty-box{
+  padding:30px 0;
+  color:#777;
+  font-size:15px;
+}
 
-    .user-avatar{
+/* BOTTOM NAV */
 
-      width:55px;
-      height:55px;
-      border-radius:50%;
-      object-fit:cover;
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#fff;
+  border-top:1px solid #ddd;
+  display:flex;
+  justify-content:space-around;
+  padding:12px 0;
+  z-index:999;
+}
 
-    }
+.bottom-nav a{
+  color:#000;
+  text-decoration:none;
+}
 
-    .user-name{
+.bottom-nav .material-icons{
+  font-size:34px;
+}
 
-      font-size:17px;
-      font-weight:600;
-
-    }
-
-    .user-bio{
-
-      color:#777;
-      font-size:14px;
-      margin-top:3px;
-
-    }
-
-    .follow-btn{
-
-      background:black;
-      color:white;
-      border:none;
-      border-radius:14px;
-      padding:11px 22px;
-      font-size:15px;
-      font-weight:600;
-
-    }
-
-  </style>
+</style>
 
 </head>
+
 <body>
 
-  <div class="search-page">
+<!-- TOPBAR -->
 
-    <!-- TOP -->
+<header class="topbar">
 
-    <div class="search-top">
+  <a
+    href="feed.html"
+    class="back-btn"
+  >
+    <span class="material-icons">
+      arrow_back
+    </span>
+  </a>
 
-      <a
-        href="feed.html"
-        class="back-btn"
-      >
-        ←
-      </a>
-
-      <div class="search-title">
-
-        Search
-
-      </div>
-
-    </div>
-
-    <!-- SEARCH -->
-
-    <input
-      type="text"
-      id="searchInput"
-      class="search-input"
-      placeholder="Search users"
-    >
-
-    <!-- USERS -->
-
-    <div
-      class="users"
-      id="usersContainer"
-    >
-
-    </div>
-
+  <div class="page-title">
+    Search
   </div>
 
-  <!-- NAVBAR -->
+</header>
 
-  <nav class="bottom-nav">
+<!-- SEARCH -->
 
-    <a href="feed.html">🏠</a>
+<div class="search-wrapper">
 
-    <a href="search.html">🔍</a>
+  <input
+    type="text"
+    id="searchInput"
+    class="search-input"
+    placeholder="Search users"
+  >
 
-    <a href="create-post.html">➕</a>
+  <div
+    class="section-title"
+    id="suggestionTitle"
+  >
+    Suggestions
+  </div>
 
-    <a href="profile.html">👤</a>
+  <div
+    class="users"
+    id="usersContainer"
+  ></div>
 
-  </nav>
+</div>
 
-  <script src="assets/js/supabase.js"></script>
+<!-- BOTTOM NAV -->
 
-  <script>
+<nav class="bottom-nav">
 
-    async function loadUsers(search = ""){
+  <a href="feed.html">
+    <span class="material-icons">
+      home
+    </span>
+  </a>
 
-      const usersContainer =
-      document.getElementById("usersContainer")
+  <a href="search.html">
+    <span class="material-icons">
+      search
+    </span>
+  </a>
 
-      usersContainer.innerHTML =
-      "Loading..."
+  <a href="create-post.html">
+    <span class="material-icons">
+      add_circle
+    </span>
+  </a>
 
-      let query =
-      supabaseClient
-      .from("profiles")
-      .select("*")
+  <a href="profile.html">
+    <span class="material-icons">
+      person
+    </span>
+  </a>
 
-      if(search){
+</nav>
 
-        query =
-        query.ilike(
-          "username",
-          `%${search}%`
-        )
+<script src="assets/js/supabase.js"></script>
 
-      }
+<script>
 
-      const { data:users, error } =
-      await query
+let currentUser = null
 
-      console.log(users)
+// ======================
+// GET CURRENT USER
+// ======================
 
-      usersContainer.innerHTML = ""
+async function getCurrentUser(){
 
-      if(users.length === 0){
-
-        usersContainer.innerHTML = `
-          <p>No users found</p>
-        `
-
-      }
-
-      for(const user of users){
-
-        let isFollowing = false
-
-if(currentUser){
-
-  const { data:followData } =
+  const {
+    data:{ user }
+  } =
   await supabaseClient
-  .from("follows")
-  .select("*")
-  .eq("follower_id", currentUser.id)
-  .eq("following_id", user.id)
-  .maybeSingle()
+  .auth
+  .getUser()
 
-  isFollowing = !!followData
+  if(!user){
+
+    window.location.href =
+    "login.html"
+
+    return
+  }
+
+  currentUser = user
+
+  loadUsers()
 
 }
 
-        usersContainer.innerHTML += `
+getCurrentUser()
 
-          <div class="user-card">
+// ======================
+// LOAD USERS
+// ======================
 
-            <div class="user-left">
+async function loadUsers(
+  search = ""
+){
 
-              <img
-                class="user-avatar"
-                src="${
-                  user.avatar_url ||
-                  'https://i.pravatar.cc/150?img=12'
-                }"
-              >
+  const usersContainer =
+  document.getElementById(
+    "usersContainer"
+  )
 
-              <div>
+  const suggestionTitle =
+  document.getElementById(
+    "suggestionTitle"
+  )
 
-                <div class="user-name">
+  usersContainer.innerHTML =
+  `
+    <div class="empty-box">
+      Loading...
+    </div>
+  `
 
-                  ${
-                    user.username ||
-                    "user"
-                  }
+  let users = []
 
-                </div>
+  // ======================
+  // SEARCH USERS
+  // ======================
 
-                <div class="user-bio">
+  if(search.trim() !== ""){
 
-                  ${
-                    user.bio ||
-                    "No bio yet"
-                  }
+    suggestionTitle.innerText =
+    "Search Results"
 
-                </div>
+    const { data } =
+    await supabaseClient
+    .from("profiles")
+    .select("*")
+    .ilike(
+      "username",
+      `%${search}%`
+    )
 
-              </div>
+    users = data || []
+
+  }
+
+  // ======================
+  // SUGGESTIONS
+  // ======================
+
+  else{
+
+    suggestionTitle.innerText =
+    "Suggestions"
+
+    const {
+      data:following
+    } =
+    await supabaseClient
+    .from("follows")
+    .select("following_id")
+    .eq(
+      "follower_id",
+      currentUser.id
+    )
+
+    const followingIds =
+    following.map(
+      item => item.following_id
+    )
+
+    if(
+      followingIds.length === 0
+    ){
+
+      usersContainer.innerHTML =
+      `
+        <div class="empty-box">
+          No suggestions yet
+        </div>
+      `
+
+      return
+
+    }
+
+    const { data } =
+    await supabaseClient
+    .from("profiles")
+    .select("*")
+    .in("id", followingIds)
+
+    users = data || []
+
+  }
+
+  usersContainer.innerHTML = ""
+
+  // ======================
+  // EMPTY
+  // ======================
+
+  if(users.length === 0){
+
+    usersContainer.innerHTML =
+    `
+      <div class="empty-box">
+        No users found
+      </div>
+    `
+
+    return
+
+  }
+
+  // ======================
+  // RENDER USERS
+  // ======================
+
+  for(const user of users){
+
+    if(
+      user.id === currentUser.id
+    ){
+
+      continue
+
+    }
+
+    // FOLLOW CHECK
+
+    const {
+      data:followData
+    } =
+    await supabaseClient
+    .from("follows")
+    .select("*")
+    .eq(
+      "follower_id",
+      currentUser.id
+    )
+    .eq(
+      "following_id",
+      user.id
+    )
+    .maybeSingle()
+
+    const isFollowing =
+    !!followData
+
+    usersContainer.innerHTML +=
+
+    `
+      <div class="user-card">
+
+        <a
+          href="
+            user-profile.html?id=${user.id}
+          "
+          class="user-left"
+          onclick="
+            saveSearchHistory(
+              '${user.id}'
+            )
+          "
+        >
+
+          <img
+            class="user-avatar"
+            src="${
+              user.avatar_url
+              ||
+              'https://i.pravatar.cc/150'
+            }"
+          >
+
+          <div class="user-info">
+
+            <div class="user-name">
+
+              ${
+                user.username
+                ||
+                "user"
+              }
+
+              ${
+                user.blue_tick_url
+                ?
+                `
+                  <img
+                    src="${user.blue_tick_url}"
+                    style="
+                      width:16px;
+                      height:16px;
+                      object-fit:contain;
+                    "
+                  >
+                `
+                :
+                ""
+              }
 
             </div>
 
-<button
-  class="follow-btn"
-  onclick="toggleFollow('${user.id}')"
-  id="follow-${user.id}"
->
-  ${isFollowing ? "Following" : "Follow"}
-</button>
+            <div class="user-bio">
+
+              ${
+                user.bio
+                ||
+                "No bio yet"
+              }
+
+            </div>
 
           </div>
 
-        `
+        </a>
 
-      }
+        <button
+          class="
+            follow-btn
+            ${
+              isFollowing
+              ?
+              "following"
+              :
+              ""
+            }
+          "
+          id="follow-${user.id}"
+          onclick="
+            toggleFollow(
+              '${user.id}'
+            )
+          "
+        >
 
-    }
+          ${
+            isFollowing
+            ?
+            "Following"
+            :
+            "Follow"
+          }
 
-    loadUsers()
+        </button>
 
-    // SEARCH
+      </div>
+    `
 
-    document
-    .getElementById("searchInput")
-    .addEventListener("input", (e)=>{
+  }
 
-      loadUsers(e.target.value)
+}
 
-    })
+// ======================
+// SEARCH INPUT
+// ======================
 
+document
+.getElementById(
+  "searchInput"
+)
+.addEventListener(
+  "input",
+  (e)=>{
 
+    loadUsers(
+      e.target.value
+    )
 
-    // CURRENT USER
+  }
+)
 
-    let currentUser = null
+// ======================
+// FOLLOW SYSTEM
+// ======================
 
-    async function getCurrentUser(){
+async function toggleFollow(
+  userId
+){
 
-      const { data:{ user } } =
-      await supabaseClient.auth.getUser()
+  const button =
+  document.getElementById(
+    `follow-${userId}`
+  )
 
-      currentUser = user
+  const {
+    data:existing
+  } =
+  await supabaseClient
+  .from("follows")
+  .select("*")
+  .eq(
+    "follower_id",
+    currentUser.id
+  )
+  .eq(
+    "following_id",
+    userId
+  )
+  .maybeSingle()
 
-    }
+  // UNFOLLOW
 
-    getCurrentUser()
+  if(existing){
 
-    // FOLLOW / UNFOLLOW
+    await supabaseClient
+    .from("follows")
+    .delete()
+    .eq(
+      "id",
+      existing.id
+    )
 
-    async function toggleFollow(userId){
+    button.innerText =
+    "Follow"
 
-      if(userId === currentUser.id){
+    button.classList.remove(
+      "following"
+    )
 
-        alert("You cannot follow yourself")
+    return
 
-        return
+  }
 
-      }
+  // FOLLOW
 
-      const button =
-      document.getElementById(`follow-${userId}`)
+  await supabaseClient
+  .from("follows")
+  .insert([{
 
-      // CHECK ALREADY FOLLOWING
+    follower_id:
+    currentUser.id,
 
-      const { data:existing } =
-      await supabaseClient
-      .from("follows")
-      .select("*")
-      .eq("follower_id", currentUser.id)
-      .eq("following_id", userId)
-      .maybeSingle()
+    following_id:
+    userId
 
-      // UNFOLLOW
+  }])
 
-      if(existing){
+  button.innerText =
+  "Following"
 
-        await supabaseClient
-        .from("follows")
-        .delete()
-        .eq("id", existing.id)
+  button.classList.add(
+    "following"
+  )
 
-        button.innerText = "Follow"
+}
 
-        return
+// ======================
+// SEARCH HISTORY
+// ======================
 
-      }
+async function saveSearchHistory(
+  userId
+){
 
-      // FOLLOW
+  await supabaseClient
+  .from("search_history")
+  .insert([{
 
-      await supabaseClient
-      .from("follows")
-      .insert([{
+    user_id:
+    currentUser.id,
 
-        follower_id: currentUser.id,
+    searched_user_id:
+    userId
 
-        following_id: userId
+  }])
 
-      }])
+}
 
-      button.innerText = "Following"
-
-    }
-
-  </script>
+</script>
 
 </body>
 </html>

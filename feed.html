@@ -380,7 +380,7 @@ id="postsContainer"
 <script src="assets/js/supabase.js"></script>
 
 
-  <script>
+ <script>
 
 async function checkUser(){
 
@@ -398,6 +398,63 @@ async function checkUser(){
 
 checkUser()
 
+// TIME AGO
+
+function timeAgo(dateString){
+
+  const seconds =
+  Math.floor(
+    (
+      new Date() -
+      new Date(dateString)
+    ) / 1000
+  )
+
+  let interval =
+  seconds / 31536000
+
+  if(interval > 1){
+
+    return Math.floor(interval) + "y"
+
+  }
+
+  interval = seconds / 2592000
+
+  if(interval > 1){
+
+    return Math.floor(interval) + "mo"
+
+  }
+
+  interval = seconds / 86400
+
+  if(interval > 1){
+
+    return Math.floor(interval) + "d"
+
+  }
+
+  interval = seconds / 3600
+
+  if(interval > 1){
+
+    return Math.floor(interval) + "h"
+
+  }
+
+  interval = seconds / 60
+
+  if(interval > 1){
+
+    return Math.floor(interval) + "m"
+
+  }
+
+  return "now"
+
+}
+
 // LOAD POSTS
 
 async function loadPosts(){
@@ -407,7 +464,74 @@ async function loadPosts(){
     "postsContainer"
   )
 
+  // TOP FILTER
+
   postsContainer.innerHTML =
+
+  `
+    <div style="
+      display:flex;
+      gap:10px;
+      padding:14px 18px;
+      border-bottom:1px solid #eee;
+      position:sticky;
+      top:67px;
+      background:white;
+      z-index:99;
+    ">
+
+      <button
+        id="followingBtn"
+        onclick="loadFeed('following')"
+        style="
+          flex:1;
+          height:42px;
+          border:none;
+          border-radius:30px;
+          background:black;
+          color:white;
+          font-weight:700;
+          cursor:pointer;
+        "
+      >
+        Following
+      </button>
+
+      <button
+        id="publicBtn"
+        onclick="loadFeed('public')"
+        style="
+          flex:1;
+          height:42px;
+          border:none;
+          border-radius:30px;
+          background:#f3f3f3;
+          color:black;
+          font-weight:700;
+          cursor:pointer;
+        "
+      >
+        Public
+      </button>
+
+    </div>
+
+    <div id="feedPosts"></div>
+  `
+
+  loadFeed("public")
+
+}
+
+
+async function loadFeed(type){
+
+  const feedPosts =
+  document.getElementById(
+    "feedPosts"
+  )
+
+  feedPosts.innerHTML =
   `
     <div style="
       padding:20px;
@@ -417,24 +541,117 @@ async function loadPosts(){
     </div>
   `
 
-  const { data:posts } =
-  await supabaseClient
-  .from("posts")
-  .select("*")
-  .order("id", {
-    ascending:false
-  })
+  // ACTIVE BUTTON
 
-  postsContainer.innerHTML = ""
+  if(type === "following"){
+
+    document.getElementById(
+      "followingBtn"
+    ).style.background = "black"
+
+    document.getElementById(
+      "followingBtn"
+    ).style.background = "black"
+
+    document.getElementById(
+      "followingBtn"
+    ).style.color = "white"
+
+    document.getElementById(
+      "publicBtn"
+    ).style.background = "#f3f3f3"
+
+    document.getElementById(
+      "publicBtn"
+    ).style.color = "black"
+
+  }
+
+  else{
+
+    document.getElementById(
+      "publicBtn"
+    ).style.background = "black"
+
+    document.getElementById(
+      "publicBtn"
+    ).style.color = "white"
+
+    document.getElementById(
+      "followingBtn"
+    ).style.background = "#f3f3f3"
+
+    document.getElementById(
+      "followingBtn"
+    ).style.color = "black"
+
+  }
+
+  const {
+    data:{ user }
+  } =
+  await supabaseClient.auth.getUser()
+
+  let posts = []
+
+  // PUBLIC POSTS
+
+  if(type === "public"){
+
+    const { data } =
+    await supabaseClient
+    .from("posts")
+    .select("*")
+    .order("id", {
+      ascending:false
+    })
+
+    posts = data || []
+
+  }
+
+  // FOLLOWING POSTS
+
+  else{
+
+    const {
+      data:following
+    } =
+    await supabaseClient
+    .from("followers")
+    .select("following_id")
+    .eq("follower_id", user.id)
+
+    const ids =
+    following.map(
+      x => x.following_id
+    )
+
+    ids.push(user.id)
+
+    const { data } =
+    await supabaseClient
+    .from("posts")
+    .select("*")
+    .in("user_id", ids)
+    .order("id", {
+      ascending:false
+    })
+
+    posts = data || []
+
+  }
+
+  feedPosts.innerHTML = ""
 
   if(posts.length === 0){
 
-    postsContainer.innerHTML =
+    feedPosts.innerHTML =
     `
       <div style="
         padding:20px;
       ">
-        No posts yet
+        No posts
       </div>
     `
 
@@ -444,8 +661,6 @@ async function loadPosts(){
 
   for(const post of posts){
 
-    // PROFILE
-
     const { data:profile } =
     await supabaseClient
     .from("profiles")
@@ -453,37 +668,77 @@ async function loadPosts(){
     .eq("id", post.user_id)
     .single()
 
-    postsContainer.innerHTML +=
+    feedPosts.innerHTML +=
 
     `
       <div class="post">
 
         <div class="post-top">
 
-          <img
-            class="avatar"
-            src="${
-              profile?.avatar_url
-              ||
-              'https://i.pravatar.cc/150?img=12'
-            }"
+          <a
+            href="
+              user-profile.html?id=${post.user_id}
+            "
           >
+
+            <img
+              class="avatar"
+              src="${
+                profile?.avatar_url
+                ||
+                'https://i.pravatar.cc/150'
+              }"
+            >
+
+          </a>
 
           <div class="post-content">
 
-            <!-- USERNAME -->
+            <div class="username" style="
+  display:flex;
+  align-items:center;
+  gap:5px;
+">
 
-            <div class="username">
+  <a
+    href="
+      user-profile.html?id=${post.user_id}
+    "
+    style="
+      color:black;
+      text-decoration:none;
+      display:flex;
+      align-items:center;
+      gap:5px;
+    "
+  >
 
-              ${
-                profile?.username
-                ||
-                "user"
-              }
+    ${
+      profile?.username
+      ||
+      "user"
+    }
 
-            </div>
+    ${
+      profile?.verified_badge
+      ?
+      `
+        <img
+          src="${profile.verified_badge}"
+          style="
+            width:16px;
+            height:16px;
+            object-fit:contain;
+          "
+        >
+      `
+      :
+      ""
+    }
 
-            <!-- CAPTION -->
+  </a>
+
+</div>
 
             <div class="caption">
 
@@ -495,10 +750,9 @@ async function loadPosts(){
 
             </div>
 
-            <!-- IMAGE -->
-
             ${
               post.image_url
+
               ?
 
               `
@@ -514,11 +768,7 @@ async function loadPosts(){
 
             }
 
-            <!-- ACTIONS -->
-
             <div class="post-actions">
-
-              <!-- LIKE -->
 
               <span
                 class="
@@ -533,36 +783,34 @@ async function loadPosts(){
                 favorite_border
               </span>
 
-              <!-- COMMENT -->
-
-              <span class="
-                material-icons
-                action-btn
-              ">
+              <span
+                class="
+                  material-icons
+                  action-btn
+                "
+              >
                 chat_bubble_outline
               </span>
 
-              <!-- REPOST -->
-
-              <span class="
-                material-icons
-                action-btn
-              ">
+              <span
+                class="
+                  material-icons
+                  action-btn
+                "
+              >
                 repeat
               </span>
 
-              <!-- SHARE -->
-
-              <span class="
-                material-icons
-                action-btn
-              ">
+              <span
+                class="
+                  material-icons
+                  action-btn
+                "
+              >
                 send
               </span>
 
             </div>
-
-            <!-- LIKES -->
 
             <div
               class="likes-count"
@@ -572,8 +820,6 @@ async function loadPosts(){
             >
               0 likes
             </div>
-
-            <!-- COMMENT BOX -->
 
             <div class="comment-box">
 
@@ -587,15 +833,13 @@ async function loadPosts(){
               >
 
               <button
-  class="comment-send"
-  onclick="addComment(${post.id})"
->
-  Post
-</button>
+                class="comment-send"
+                onclick="addComment(${post.id})"
+              >
+                Post
+              </button>
 
             </div>
-
-            <!-- COMMENTS -->
 
             <div
               class="comments-list"
@@ -613,11 +857,7 @@ async function loadPosts(){
 
   }
 
-  // SETUP
-
   setupLikes()
-
-  // LOAD COMMENTS
 
   for(const post of posts){
 
@@ -629,9 +869,7 @@ async function loadPosts(){
 
 loadPosts()
 
-// ======================
 // LIKE SYSTEM
-// ======================
 
 async function setupLikes(){
 
@@ -648,8 +886,6 @@ async function setupLikes(){
     const postId =
     btn.dataset.post
 
-    // COUNT
-
     const { count } =
     await supabaseClient
     .from("likes")
@@ -665,8 +901,6 @@ async function setupLikes(){
       `likes-${postId}`
     ).innerText =
     `${count || 0} likes`
-
-    // CHECK USER LIKE
 
     const { data:liked } =
     await supabaseClient
@@ -687,13 +921,9 @@ async function setupLikes(){
 
     }
 
-    // CLICK EVENT
-
     btn.addEventListener(
       "click",
       async ()=>{
-
-        // UNLIKE
 
         if(
           btn.classList.contains(
@@ -716,8 +946,6 @@ async function setupLikes(){
 
         }
 
-        // LIKE
-
         else{
 
           await supabaseClient
@@ -725,7 +953,6 @@ async function setupLikes(){
           .insert({
 
             post_id:postId,
-
             user_id:user.id
 
           })
@@ -738,8 +965,6 @@ async function setupLikes(){
           )
 
         }
-
-        // UPDATE COUNT
 
         const { count:newCount } =
         await supabaseClient
@@ -765,11 +990,239 @@ async function setupLikes(){
 
 }
 
+
 // ======================
-// LOAD COMMENTS
+// LOAD COMMENTS START
 // ======================
 
-async function loadComments(postId){
+let commentsLimit = {}
+
+async function loadComments(
+  postId,
+  append = false
+){
+
+  const commentsContainer =
+  document.getElementById(
+    `comments-${postId}`
+  )
+
+  // FIRST TIME LIMIT
+
+  if(!commentsLimit[postId]){
+
+    commentsLimit[postId] = 2
+
+  }
+
+  // GET COMMENTS
+
+  const { data:allComments } =
+  await supabaseClient
+  .from("comments")
+  .select("*")
+  .eq("post_id", postId)
+  .is("parent_id", null)
+  .order("id", {
+    ascending:false
+  })
+
+  if(!append){
+
+    commentsContainer.innerHTML = ""
+
+  }
+
+  if(!allComments){
+
+    return
+
+  }
+
+  // TOTAL COMMENTS
+
+  const totalComments =
+  allComments.length
+
+  // SHOW COUNT
+
+  if(!append){
+
+    commentsContainer.innerHTML += `
+
+      <div style="
+        font-size:14px;
+        font-weight:700;
+        margin-top:14px;
+        margin-bottom:8px;
+      ">
+        ${totalComments} comments
+      </div>
+
+    `
+
+  }
+
+  // CURRENT LIMIT
+
+  const currentComments =
+  allComments.slice(
+    0,
+    commentsLimit[postId]
+  )
+
+  // RENDER COMMENTS
+
+  for(const comment of currentComments){
+
+    // PREVENT DUPLICATE
+
+    if(
+      document.getElementById(
+        `comment-${comment.id}`
+      )
+    ){
+
+      continue
+
+    }
+
+    await renderComment(
+      comment,
+      commentsContainer
+    )
+
+  }
+
+  // REMOVE OLD BUTTONS
+
+  const oldButtons =
+  commentsContainer.querySelectorAll(
+    ".load-more-btn"
+  )
+
+  oldButtons.forEach(btn=>{
+
+    btn.remove()
+
+  })
+
+  // SEE MORE
+
+  if(
+    totalComments >
+    commentsLimit[postId]
+  ){
+
+    commentsContainer.innerHTML += `
+
+      <div
+        class="load-more-btn"
+        onclick="
+          loadMoreComments(
+            ${postId}
+          )
+        "
+        style="
+          color:gray;
+          font-size:14px;
+          margin-top:12px;
+          cursor:pointer;
+          font-weight:600;
+        "
+      >
+        See more comments
+      </div>
+
+    `
+
+  }
+
+  // LESS MORE
+
+  else if(
+    totalComments > 2
+  ){
+
+    commentsContainer.innerHTML += `
+
+      <div
+        class="load-more-btn"
+        onclick="
+          showLessComments(
+            ${postId}
+          )
+        "
+        style="
+          color:gray;
+          font-size:14px;
+          margin-top:12px;
+          cursor:pointer;
+          font-weight:600;
+        "
+      >
+        Less comments
+      </div>
+
+    `
+
+  }
+
+}
+
+// ======================
+// LOAD COMMENTS END
+// ======================
+
+
+
+// ======================
+// LOAD MORE COMMENTS START
+// ======================
+
+async function loadMoreComments(
+  postId
+){
+
+  commentsLimit[postId] += 10
+
+  loadComments(
+    postId,
+    true
+  )
+
+}
+
+// ======================
+// LOAD MORE COMMENTS END
+// ======================
+
+
+
+// ======================
+// SHOW LESS COMMENTS START
+// ======================
+
+async function showLessComments(
+  postId
+){
+
+  commentsLimit[postId] = 2
+
+  loadComments(postId)
+
+}
+
+// ======================
+// SHOW LESS COMMENTS END
+// ======================
+
+
+// ======================
+// SHOW MORE COMMENTS START
+// ======================
+
+async function showMoreComments(postId){
 
   const commentsContainer =
   document.getElementById(
@@ -781,6 +1234,7 @@ async function loadComments(postId){
   .from("comments")
   .select("*")
   .eq("post_id", postId)
+  .is("parent_id", null)
   .order("id", {
     ascending:false
   })
@@ -789,47 +1243,326 @@ async function loadComments(postId){
 
   for(const comment of comments){
 
-    // PROFILE
-
-    const { data:userProfile } =
-    await supabaseClient
-    .from("profiles")
-    .select("*")
-    .eq("id", comment.user_id)
-    .single()
-
-    commentsContainer.innerHTML +=
-
-    `
-      <div class="single-comment">
-
-        <div class="comment-user">
-
-          ${
-            userProfile?.username
-            ||
-            "user"
-          }
-
-        </div>
-
-        <div class="comment-text">
-
-          ${
-            comment.comment
-          }
-
-        </div>
-
-      </div>
-    `
+    await renderComment(
+      comment,
+      commentsContainer
+    )
 
   }
 
 }
 
 // ======================
-// ADD COMMENT
+// SHOW MORE COMMENTS END
+// ======================
+
+
+
+// ======================
+// RENDER COMMENT START
+// ======================
+
+async function renderComment(
+  comment,
+  container
+){
+
+  const { data:userProfile } =
+  await supabaseClient
+  .from("profiles")
+  .select("*")
+  .eq("id", comment.user_id)
+  .single()
+
+  const { data:replies } =
+  await supabaseClient
+  .from("comments")
+  .select("*")
+  .eq("parent_id", comment.id)
+  .order("id", {
+    ascending:true
+  })
+
+  container.innerHTML += `
+
+    <div style="
+      margin-top:18px;
+      display:flex;
+      gap:10px;
+    ">
+
+      <img
+        src="${
+          userProfile?.avatar_url ||
+          'https://i.pravatar.cc/150'
+        }"
+        style="
+          width:34px;
+          height:34px;
+          border-radius:50%;
+          object-fit:cover;
+        "
+      >
+
+      <div style="flex:1">
+
+        <div style="
+          display:flex;
+          gap:8px;
+          align-items:center;
+        ">
+
+          <div style="
+  display:flex;
+  align-items:center;
+  gap:5px;
+  font-size:14px;
+  font-weight:700;
+">
+
+  ${
+    userProfile?.username ||
+    "user"
+  }
+
+  ${
+    userProfile?.verified_badge
+    ?
+    `
+      <img
+        src="${userProfile.verified_badge}"
+        style="
+          width:15px;
+          height:15px;
+          object-fit:contain;
+        "
+      >
+    `
+    :
+    ""
+  }
+
+</div>
+
+        </div>
+
+        <div style="
+          margin-top:4px;
+          font-size:14px;
+          line-height:1.5;
+        ">
+          ${comment.comment}
+        </div>
+
+        <div style="
+          margin-top:8px;
+          display:flex;
+          gap:14px;
+        ">
+
+          <div
+            onclick="toggleReplyBox(${comment.id})"
+            style="
+              color:gray;
+              font-size:13px;
+              cursor:pointer;
+              font-weight:600;
+            "
+          >
+            Reply
+          </div>
+
+        </div>
+
+        <!-- REPLY BOX -->
+
+        <div
+          id="reply-box-${comment.id}"
+          style="
+            display:none;
+            gap:8px;
+            margin-top:10px;
+          "
+        >
+
+          <input
+            type="text"
+            id="reply-input-${comment.id}"
+            placeholder="Reply..."
+            style="
+              flex:1;
+              height:38px;
+              border:none;
+              background:#f3f3f3;
+              border-radius:10px;
+              padding:0 12px;
+            "
+          >
+
+          <button
+            onclick="addReply(
+              ${comment.id},
+              ${comment.post_id}
+            )"
+            style="
+              border:none;
+              background:black;
+              color:white;
+              border-radius:10px;
+              padding:0 14px;
+              cursor:pointer;
+            "
+          >
+            Post
+          </button>
+
+        </div>
+
+        <!-- REPLIES -->
+
+        <div
+          id="replies-${comment.id}"
+          style="
+            margin-left:20px;
+            margin-top:10px;
+          "
+        ></div>
+
+      </div>
+
+    </div>
+
+  `
+
+  // LOAD REPLIES
+
+  if(replies){
+
+    const repliesContainer =
+    document.getElementById(
+      `replies-${comment.id}`
+    )
+
+    for(const reply of replies){
+
+      const { data:replyUser } =
+      await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("id", reply.user_id)
+      .single()
+
+      repliesContainer.innerHTML += `
+
+        <div style="
+          display:flex;
+          gap:10px;
+          margin-top:14px;
+        ">
+
+          <img
+            src="${
+              replyUser?.avatar_url ||
+              'https://i.pravatar.cc/150'
+            }"
+            style="
+              width:28px;
+              height:28px;
+              border-radius:50%;
+            "
+          >
+
+          <div>
+<div style="
+  display:flex;
+  align-items:center;
+  gap:5px;
+  font-size:13px;
+  font-weight:700;
+">
+
+  ${
+    replyUser?.username ||
+    "user"
+  }
+
+  ${
+    replyUser?.verified_badge
+    ?
+    `
+      <img
+        src="${replyUser.verified_badge}"
+        style="
+          width:14px;
+          height:14px;
+          object-fit:contain;
+        "
+      >
+    `
+    :
+    ""
+  }
+
+</div>
+
+            <div style="
+              margin-top:3px;
+              font-size:13px;
+            ">
+              ${reply.comment}
+            </div>
+
+          </div>
+
+        </div>
+
+      `
+
+    }
+
+  }
+
+}
+
+// ======================
+// RENDER COMMENT END
+// ======================
+
+
+
+// ======================
+// TOGGLE REPLY START
+// ======================
+
+function toggleReplyBox(id){
+
+  const box =
+  document.getElementById(
+    `reply-box-${id}`
+  )
+
+  if(box.style.display === "flex"){
+
+    box.style.display = "none"
+
+  }
+
+  else{
+
+    box.style.display = "flex"
+
+  }
+
+}
+
+// ======================
+// TOGGLE REPLY END
+// ======================
+
+
+
+// ======================
+// ADD COMMENT START
 // ======================
 
 async function addComment(postId){
@@ -851,40 +1584,74 @@ async function addComment(postId){
 
   }
 
-  // INSERT
-
-  const { error } =
   await supabaseClient
   .from("comments")
   .insert({
 
     post_id:postId,
-
     user_id:user.id,
-
     comment:text
 
   })
 
-  if(error){
-
-    alert(error.message)
-
-    return
-
-  }
-
-  // CLEAR
-
   input.value = ""
-
-  // RELOAD COMMENTS
 
   loadComments(postId)
 
 }
 
-</script>
+// ======================
+// ADD COMMENT END
+// ======================
 
+
+
+// ======================
+// ADD REPLY START
+// ======================
+
+async function addReply(
+  parentId,
+  postId
+){
+
+  const { data:{ user } } =
+  await supabaseClient.auth.getUser()
+
+  const input =
+  document.getElementById(
+    `reply-input-${parentId}`
+  )
+
+  const text =
+  input.value.trim()
+
+  if(!text){
+
+    return
+
+  }
+
+  await supabaseClient
+  .from("comments")
+  .insert({
+
+    post_id:postId,
+    user_id:user.id,
+    parent_id:parentId,
+    comment:text
+
+  })
+
+  loadComments(postId)
+
+}
+
+// ======================
+// ADD REPLY END
+// ======================
+
+</script>
+<script src="assets/js/realtime.js"></script>
 </body>
 </html>
