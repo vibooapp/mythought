@@ -158,6 +158,160 @@ body{
   font-size:34px;
 }
 
+
+
+.comment-box{
+
+  display:flex;
+  gap:10px;
+  margin-top:14px;
+
+}
+
+.comment-input{
+
+  flex:1;
+  border:none;
+  background:#f3f3f3;
+  height:42px;
+  border-radius:12px;
+  padding:0 14px;
+  outline:none;
+
+}
+
+.comment-send{
+
+  border:none;
+  background:black;
+  color:white;
+  border-radius:12px;
+  padding:0 16px;
+  cursor:pointer;
+
+}
+
+.comments-list{
+
+  margin-top:12px;
+
+}
+
+.single-comment{
+
+  padding:10px 0;
+  border-bottom:1px solid #eee;
+
+}
+
+.comment-user{
+
+  font-weight:600;
+  font-size:14px;
+  margin-bottom:3px;
+
+}
+
+.comment-text{
+
+  font-size:14px;
+  line-height:1.4;
+
+}
+
+
+
+.comments-wrapper{
+  margin-top:14px;
+}
+
+.comment-item{
+  display:flex;
+  gap:10px;
+  margin-top:16px;
+}
+
+.comment-avatar{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.comment-body{
+  flex:1;
+}
+
+.comment-top{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.comment-username{
+  font-weight:700;
+  font-size:14px;
+}
+
+.comment-time{
+  color:#777;
+  font-size:12px;
+}
+
+.comment-text{
+  margin-top:4px;
+  font-size:14px;
+  line-height:1.5;
+}
+
+.comment-actions{
+  display:flex;
+  gap:14px;
+  margin-top:8px;
+}
+
+.comment-action{
+  font-size:13px;
+  color:#777;
+  cursor:pointer;
+}
+
+.reply-box{
+  margin-top:10px;
+  display:none;
+  gap:8px;
+}
+
+.reply-input{
+  flex:1;
+  height:38px;
+  border:none;
+  background:#f3f3f3;
+  border-radius:10px;
+  padding:0 12px;
+}
+
+.reply-btn{
+  border:none;
+  background:black;
+  color:white;
+  border-radius:10px;
+  padding:0 14px;
+}
+
+.replies{
+  margin-left:44px;
+  margin-top:10px;
+}
+
+.show-replies{
+  color:#777;
+  font-size:13px;
+  margin-top:10px;
+  cursor:pointer;
+  font-weight:600;
+}
 </style>
 
 </head>
@@ -225,7 +379,8 @@ id="postsContainer"
 
 <script src="assets/js/supabase.js"></script>
 
-<script>
+
+  <script>
 
 async function checkUser(){
 
@@ -242,6 +397,8 @@ async function checkUser(){
 }
 
 checkUser()
+
+// LOAD POSTS
 
 async function loadPosts(){
 
@@ -260,7 +417,7 @@ async function loadPosts(){
     </div>
   `
 
-  const { data:posts, error } =
+  const { data:posts } =
   await supabaseClient
   .from("posts")
   .select("*")
@@ -280,6 +437,8 @@ async function loadPosts(){
         No posts yet
       </div>
     `
+
+    return
 
   }
 
@@ -312,6 +471,8 @@ async function loadPosts(){
 
           <div class="post-content">
 
+            <!-- USERNAME -->
+
             <div class="username">
 
               ${
@@ -322,6 +483,8 @@ async function loadPosts(){
 
             </div>
 
+            <!-- CAPTION -->
+
             <div class="caption">
 
               ${
@@ -331,6 +494,8 @@ async function loadPosts(){
               }
 
             </div>
+
+            <!-- IMAGE -->
 
             ${
               post.image_url
@@ -353,6 +518,8 @@ async function loadPosts(){
 
             <div class="post-actions">
 
+              <!-- LIKE -->
+
               <span
                 class="
                   material-icons
@@ -366,6 +533,8 @@ async function loadPosts(){
                 favorite_border
               </span>
 
+              <!-- COMMENT -->
+
               <span class="
                 material-icons
                 action-btn
@@ -373,12 +542,16 @@ async function loadPosts(){
                 chat_bubble_outline
               </span>
 
+              <!-- REPOST -->
+
               <span class="
                 material-icons
                 action-btn
               ">
                 repeat
               </span>
+
+              <!-- SHARE -->
 
               <span class="
                 material-icons
@@ -389,7 +562,7 @@ async function loadPosts(){
 
             </div>
 
-            <!-- LIKE COUNT -->
+            <!-- LIKES -->
 
             <div
               class="likes-count"
@@ -400,6 +573,37 @@ async function loadPosts(){
               0 likes
             </div>
 
+            <!-- COMMENT BOX -->
+
+            <div class="comment-box">
+
+              <input
+                type="text"
+                class="comment-input"
+                id="comment-input-${
+                  post.id
+                }"
+                placeholder="Write a comment..."
+              >
+
+              <button
+  class="comment-send"
+  onclick="addComment(${post.id})"
+>
+  Post
+</button>
+
+            </div>
+
+            <!-- COMMENTS -->
+
+            <div
+              class="comments-list"
+              id="comments-${
+                post.id
+              }"
+            ></div>
+
           </div>
 
         </div>
@@ -409,13 +613,25 @@ async function loadPosts(){
 
   }
 
+  // SETUP
+
   setupLikes()
+
+  // LOAD COMMENTS
+
+  for(const post of posts){
+
+    loadComments(post.id)
+
+  }
 
 }
 
 loadPosts()
 
-/* LIKE SYSTEM */
+// ======================
+// LIKE SYSTEM
+// ======================
 
 async function setupLikes(){
 
@@ -432,7 +648,7 @@ async function setupLikes(){
     const postId =
     btn.dataset.post
 
-    // TOTAL LIKES
+    // COUNT
 
     const { count } =
     await supabaseClient
@@ -471,13 +687,13 @@ async function setupLikes(){
 
     }
 
-    // CLICK
+    // CLICK EVENT
 
     btn.addEventListener(
       "click",
       async ()=>{
 
-        // REMOVE LIKE
+        // UNLIKE
 
         if(
           btn.classList.contains(
@@ -500,7 +716,7 @@ async function setupLikes(){
 
         }
 
-        // ADD LIKE
+        // LIKE
 
         else{
 
@@ -509,6 +725,7 @@ async function setupLikes(){
           .insert({
 
             post_id:postId,
+
             user_id:user.id
 
           })
@@ -545,6 +762,125 @@ async function setupLikes(){
     )
 
   }
+
+}
+
+// ======================
+// LOAD COMMENTS
+// ======================
+
+async function loadComments(postId){
+
+  const commentsContainer =
+  document.getElementById(
+    `comments-${postId}`
+  )
+
+  const { data:comments } =
+  await supabaseClient
+  .from("comments")
+  .select("*")
+  .eq("post_id", postId)
+  .order("id", {
+    ascending:false
+  })
+
+  commentsContainer.innerHTML = ""
+
+  for(const comment of comments){
+
+    // PROFILE
+
+    const { data:userProfile } =
+    await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", comment.user_id)
+    .single()
+
+    commentsContainer.innerHTML +=
+
+    `
+      <div class="single-comment">
+
+        <div class="comment-user">
+
+          ${
+            userProfile?.username
+            ||
+            "user"
+          }
+
+        </div>
+
+        <div class="comment-text">
+
+          ${
+            comment.comment
+          }
+
+        </div>
+
+      </div>
+    `
+
+  }
+
+}
+
+// ======================
+// ADD COMMENT
+// ======================
+
+async function addComment(postId){
+
+  const { data:{ user } } =
+  await supabaseClient.auth.getUser()
+
+  const input =
+  document.getElementById(
+    `comment-input-${postId}`
+  )
+
+  const text =
+  input.value.trim()
+
+  if(!text){
+
+    return
+
+  }
+
+  // INSERT
+
+  const { error } =
+  await supabaseClient
+  .from("comments")
+  .insert({
+
+    post_id:postId,
+
+    user_id:user.id,
+
+    comment:text
+
+  })
+
+  if(error){
+
+    alert(error.message)
+
+    return
+
+  }
+
+  // CLEAR
+
+  input.value = ""
+
+  // RELOAD COMMENTS
+
+  loadComments(postId)
 
 }
 
