@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
+
+<title>Notifications</title>
+
+<link
+href="https://fonts.googleapis.com/icon?family=Material+Icons"
+rel="stylesheet"
+/>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial;
+}
+
+body{
+  background:#fff;
+  color:#000;
+  padding-bottom:90px;
+}
+
+/* TOPBAR */
+
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:999;
+  background:white;
+  border-bottom:1px solid #eee;
+  padding:18px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.back-btn{
+  font-size:30px;
+  cursor:pointer;
+}
+
+.page-title{
+  font-size:28px;
+  font-weight:700;
+}
+
+/* NOTIFICATIONS */
+
+.notifications{
+  padding:0 18px;
+}
+
+.notification-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:18px 0;
+  border-bottom:1px solid #eee;
+}
+
+.notification-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex:1;
+  text-decoration:none;
+  color:black;
+}
+
+.notification-avatar{
+  width:55px;
+  height:55px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.notification-content{
+  flex:1;
+}
+
+.notification-text{
+  font-size:15px;
+  line-height:1.5;
+}
+
+.notification-time{
+  margin-top:5px;
+  font-size:13px;
+  color:gray;
+}
+
+.notification-image{
+  width:58px;
+  height:58px;
+  border-radius:12px;
+  object-fit:cover;
+}
+
+.blue-tick{
+  width:16px;
+  height:16px;
+  object-fit:contain;
+  vertical-align:middle;
+}
+
+.empty-box{
+  padding:60px 20px;
+  text-align:center;
+  color:gray;
+  font-size:15px;
+}
+
+/* UNREAD */
+
+.unread{
+  background:#f8f8f8;
+}
+
+/* BOTTOM NAV */
+
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#fff;
+  border-top:1px solid #ddd;
+  display:flex;
+  justify-content:space-around;
+  padding:12px 0;
+  z-index:999;
+}
+
+.bottom-nav a{
+  color:#000;
+  text-decoration:none;
+  position:relative;
+}
+
+.bottom-nav .material-icons{
+  font-size:34px;
+}
+
+.notification-badge{
+  position:absolute;
+  top:-4px;
+  right:-6px;
+  background:red;
+  color:white;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  font-size:11px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- TOPBAR -->
+
+<div class="topbar">
+
+  <span
+    class="material-icons back-btn"
+    onclick="history.back()"
+  >
+    arrow_back
+  </span>
+
+  <div class="page-title">
+    Notifications
+  </div>
+
+</div>
+
+<!-- NOTIFICATIONS -->
+
+<div
+  class="notifications"
+  id="notificationsContainer"
+></div>
+
+<!-- BOTTOM NAV -->
+
+<nav class="bottom-nav">
+
+  <a href="feed.html">
+
+    <span class="material-icons">
+      home
+    </span>
+
+  </a>
+
+  <a href="search.html">
+
+    <span class="material-icons">
+      search
+    </span>
+
+  </a>
+
+  <a href="create-post.html">
+
+    <span class="material-icons">
+      add_circle
+    </span>
+
+  </a>
+
+  <a href="notification.html">
+
+    <span class="material-icons">
+      notifications
+    </span>
+
+    <div
+      class="notification-badge"
+      id="notificationBadge"
+      style="display:none"
+    >
+      0
+    </div>
+
+  </a>
+
+  <a href="profile.html">
+
+    <span class="material-icons">
+      person
+    </span>
+
+  </a>
+
+</nav>
+
+<script src="assets/js/supabase.js"></script>
+
+<script>
+
+let currentUser = null
+
+// =======================
+// TIME AGO
+// =======================
+
+function timeAgo(dateString){
+
+  const seconds =
+  Math.floor(
+    (
+      new Date() -
+      new Date(dateString)
+    ) / 1000
+  )
+
+  let interval =
+  seconds / 31536000
+
+  if(interval > 1){
+
+    return Math.floor(interval) + "y"
+
+  }
+
+  interval = seconds / 2592000
+
+  if(interval > 1){
+
+    return Math.floor(interval) + "mo"
+
+  }
+
+  interval = seconds / 86400
+
+  if(interval > 1){
+
+    return Math.floor(interval) + "d"
+
+  }
+
+  interval = seconds / 3600
+
+  if(interval > 1){
+
+    return Math.floor(interval) + "h"
+
+  }
+
+  interval = seconds / 60
+
+  if(interval > 1){
+
+    return Math.floor(interval) + "m"
+
+  }
+
+  return "now"
+
+}
+
+// =======================
+// LOAD USER
+// =======================
+
+async function init(){
+
+  const {
+    data:{ user }
+  } =
+  await supabaseClient
+  .auth
+  .getUser()
+
+  if(!user){
+
+    window.location.href =
+    "login.html"
+
+    return
+  }
+
+  currentUser = user
+
+  loadNotifications()
+
+  setupRealtime()
+
+}
+
+init()
+
+// =======================
+// LOAD NOTIFICATIONS
+// =======================
+
+async function loadNotifications(){
+
+  const container =
+  document.getElementById(
+    "notificationsContainer"
+  )
+
+  container.innerHTML = `
+
+    <div class="empty-box">
+      Loading...
+    </div>
+
+  `
+
+  const {
+    data:notifications
+  } =
+  await supabaseClient
+  .from("notifications")
+  .select(`
+    *,
+    profiles!notifications_sender_id_fkey (
+      id,
+      username,
+      avatar_url,
+      verified_badge
+    )
+  `)
+  .eq(
+    "receiver_id",
+    currentUser.id
+  )
+  .order(
+    "id",
+    {
+      ascending:false
+    }
+  )
+
+  container.innerHTML = ""
+
+  if(
+    !notifications ||
+    notifications.length === 0
+  ){
+
+    container.innerHTML = `
+
+      <div class="empty-box">
+        No notifications yet
+      </div>
+
+    `
+
+    return
+  }
+
+  // UNREAD COUNT
+
+  const unreadCount =
+  notifications.filter(
+    item => !item.is_read
+  ).length
+
+  const badge =
+  document.getElementById(
+    "notificationBadge"
+  )
+
+  if(unreadCount > 0){
+
+    badge.style.display =
+    "flex"
+
+    badge.innerText =
+    unreadCount
+
+  }
+
+  else{
+
+    badge.style.display =
+    "none"
+
+  }
+
+  // RENDER
+
+  for(const item of notifications){
+
+    const sender =
+    item.profiles
+
+    let postImage = ""
+
+    // POST IMAGE
+
+    if(item.post_id){
+
+      const {
+        data:post
+      } =
+      await supabaseClient
+      .from("posts")
+      .select("image_url")
+      .eq("id", item.post_id)
+      .single()
+
+      if(post?.image_url){
+
+        postImage = `
+
+          <img
+            src="${post.image_url}"
+            class="notification-image"
+          >
+
+        `
+      }
+
+    }
+
+    container.innerHTML += `
+
+      <div
+        class="
+          notification-card
+          ${
+            !item.is_read
+            ? "unread"
+            : ""
+          }
+        "
+      >
+
+        <a
+          href="
+            user-profile.html?id=${sender?.id}
+          "
+          class="notification-left"
+        >
+
+          <img
+            class="notification-avatar"
+            src="${
+              sender?.avatar_url
+              ||
+              'https://i.pravatar.cc/150'
+            }"
+          >
+
+          <div class="notification-content">
+
+            <div class="notification-text">
+
+              <b>
+
+                ${
+                  sender?.username
+                  ||
+                  "user"
+                }
+
+              </b>
+
+              ${
+                sender?.verified_badge
+                ?
+                `
+                  <img
+                    src="${sender.verified_badge}"
+                    class="blue-tick"
+                  >
+                `
+                :
+                ""
+              }
+
+              ${
+                item.message
+              }
+
+            </div>
+
+            <div class="notification-time">
+
+              ${
+                timeAgo(
+                  item.created_at
+                )
+              }
+
+            </div>
+
+          </div>
+
+        </a>
+
+        ${postImage}
+
+      </div>
+
+    `
+  }
+
+  // MARK READ
+
+  await supabaseClient
+  .from("notifications")
+  .update({
+
+    is_read:true
+
+  })
+  .eq(
+    "receiver_id",
+    currentUser.id
+  )
+  .eq(
+    "is_read",
+    false
+  )
+
+}
+
+// =======================
+// REALTIME
+// =======================
+
+function setupRealtime(){
+
+  supabaseClient
+
+  .channel(
+    "notifications-realtime"
+  )
+
+  .on(
+    "postgres_changes",
+    {
+
+      event:"INSERT",
+
+      schema:"public",
+
+      table:"notifications"
+
+    },
+
+    payload => {
+
+      if(
+        payload.new.receiver_id ===
+        currentUser.id
+      ){
+
+        loadNotifications()
+
+      }
+
+    }
+  )
+
+  .subscribe()
+
+}
+
+</script>
+
+</body>
+</html>

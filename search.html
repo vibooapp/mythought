@@ -83,16 +83,36 @@ body{
   color:#bbb;
 }
 
-.section-title{
-  margin-top:24px;
-  font-size:18px;
+/* FILTERS */
+
+.filters{
+  display:flex;
+  gap:10px;
+  margin-top:20px;
+  overflow:auto;
+}
+
+.filter-btn{
+  border:none;
+  background:#f3f3f3;
+  color:black;
+  padding:10px 18px;
+  border-radius:50px;
+  font-size:14px;
   font-weight:700;
+  cursor:pointer;
+  white-space:nowrap;
+}
+
+.active-filter{
+  background:black;
+  color:white;
 }
 
 /* USERS */
 
 .users{
-  margin-top:10px;
+  margin-top:18px;
 }
 
 .user-card{
@@ -154,8 +174,6 @@ body{
   background:#f3f3f3;
   color:black;
 }
-
-/* EMPTY */
 
 .empty-box{
   padding:30px 0;
@@ -222,12 +240,34 @@ body{
     placeholder="Search users"
   >
 
-  <div
-    class="section-title"
-    id="suggestionTitle"
-  >
-    Suggestions
+  <!-- FILTERS -->
+
+  <div class="filters">
+
+    <button
+      class="filter-btn active-filter"
+      onclick="changeFilter('suggestions', this)"
+    >
+      Suggestions
+    </button>
+
+    <button
+      class="filter-btn"
+      onclick="changeFilter('all', this)"
+    >
+      All Users
+    </button>
+
+    <button
+      class="filter-btn"
+      onclick="changeFilter('popular', this)"
+    >
+      Popular
+    </button>
+
   </div>
+
+  <!-- USERS -->
 
   <div
     class="users"
@@ -267,10 +307,16 @@ body{
 </nav>
 
 <script src="assets/js/supabase.js"></script>
+<script src="assets/js/create-notification.js"></script>
+
 
 <script>
+  // ======================
+// SEARCH PAGE FULL JS
+// ======================
 
 let currentUser = null
+let currentFilter = "suggestions"
 
 // ======================
 // GET CURRENT USER
@@ -291,6 +337,7 @@ async function getCurrentUser(){
     "login.html"
 
     return
+
   }
 
   currentUser = user
@@ -300,6 +347,39 @@ async function getCurrentUser(){
 }
 
 getCurrentUser()
+
+// ======================
+// CHANGE FILTER
+// ======================
+
+function changeFilter(
+  filter,
+  button
+){
+
+  currentFilter = filter
+
+  document
+  .querySelectorAll(".filter-btn")
+  .forEach(btn=>{
+
+    btn.classList.remove(
+      "active-filter"
+    )
+
+  })
+
+  button.classList.add(
+    "active-filter"
+  )
+
+  loadUsers(
+    document.getElementById(
+      "searchInput"
+    ).value
+  )
+
+}
 
 // ======================
 // LOAD USERS
@@ -314,11 +394,6 @@ async function loadUsers(
     "usersContainer"
   )
 
-  const suggestionTitle =
-  document.getElementById(
-    "suggestionTitle"
-  )
-
   usersContainer.innerHTML =
   `
     <div class="empty-box">
@@ -329,13 +404,10 @@ async function loadUsers(
   let users = []
 
   // ======================
-  // SEARCH USERS
+  // SEARCH
   // ======================
 
   if(search.trim() !== ""){
-
-    suggestionTitle.innerText =
-    "Search Results"
 
     const { data } =
     await supabaseClient
@@ -354,10 +426,10 @@ async function loadUsers(
   // SUGGESTIONS
   // ======================
 
-  else{
-
-    suggestionTitle.innerText =
-    "Suggestions"
+  else if(
+    currentFilter ===
+    "suggestions"
+  ){
 
     const {
       data:following
@@ -394,7 +466,51 @@ async function loadUsers(
     await supabaseClient
     .from("profiles")
     .select("*")
-    .in("id", followingIds)
+    .in(
+      "id",
+      followingIds
+    )
+
+    users = data || []
+
+  }
+
+  // ======================
+  // ALL USERS
+  // ======================
+
+  else if(
+    currentFilter ===
+    "all"
+  ){
+
+    const { data } =
+    await supabaseClient
+    .from("profiles")
+    .select("*")
+
+    users = data || []
+
+  }
+
+  // ======================
+  // POPULAR USERS
+  // ======================
+
+  else if(
+    currentFilter ===
+    "popular"
+  ){
+
+    const { data } =
+    await supabaseClient
+    .from("profiles")
+    .select("*")
+    .not(
+      "verified_badge",
+      "is",
+      null
+    )
 
     users = data || []
 
@@ -491,11 +607,11 @@ async function loadUsers(
               }
 
               ${
-                user.blue_tick_url
+                user?.verified_badge
                 ?
                 `
                   <img
-                    src="${user.blue_tick_url}"
+                    src="${user.verified_badge}"
                     style="
                       width:16px;
                       height:16px;
@@ -607,7 +723,9 @@ async function toggleFollow(
   )
   .maybeSingle()
 
+  // ======================
   // UNFOLLOW
+  // ======================
 
   if(existing){
 
@@ -618,6 +736,17 @@ async function toggleFollow(
       "id",
       existing.id
     )
+
+    // ======================
+    // DELETE NOTIFICATION
+    // ======================
+
+    await supabaseClient
+    .from("notifications")
+    .delete()
+    .eq("sender_id", currentUser.id)
+    .eq("receiver_id", userId)
+    .eq("type", "follow")
 
     button.innerText =
     "Follow"
@@ -630,7 +759,9 @@ async function toggleFollow(
 
   }
 
+  // ======================
   // FOLLOW
+  // ======================
 
   await supabaseClient
   .from("follows")
@@ -643,6 +774,22 @@ async function toggleFollow(
     userId
 
   }])
+
+  // ======================
+  // FOLLOW NOTIFICATION
+  // ======================
+
+  await createNotification({
+
+    senderId:currentUser.id,
+
+    receiverId:userId,
+
+    type:"follow",
+
+    message:"started following you"
+
+  })
 
   button.innerText =
   "Following"
@@ -674,7 +821,6 @@ async function saveSearchHistory(
   }])
 
 }
-
 </script>
 
 </body>

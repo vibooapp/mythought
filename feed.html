@@ -369,6 +369,14 @@ id="postsContainer"
     </span>
   </a>
 
+<a href="notifications.html">
+
+  <span class="material-icons">
+    notifications
+  </span>
+
+</a>
+
   <a href="profile.html">
     <span class="material-icons">
       person
@@ -378,8 +386,73 @@ id="postsContainer"
 </nav>
 
 <script src="assets/js/supabase.js"></script>
+<script src="assets/js/create-notification.js"></script>
 
+<script>
 
+async function sendLikeNotification(
+  postId,
+  receiverId
+){
+
+  const {
+    data:{ user }
+  } =
+  await supabaseClient
+  .auth
+  .getUser()
+
+  // khud ki post ho to notification nahi
+  if(user.id === receiverId){
+    return
+  }
+
+  await createNotification({
+
+    senderId:user.id,
+
+    receiverId:receiverId,
+
+    type:"like",
+
+    message:"liked your post"
+
+  })
+
+}
+
+async function sendCommentNotification(
+  postId,
+  receiverId
+){
+
+  const {
+    data:{ user }
+  } =
+  await supabaseClient
+  .auth
+  .getUser()
+
+  // khud ki post ho to notification nahi
+  if(user.id === receiverId){
+    return
+  }
+
+  await createNotification({
+
+    senderId:user.id,
+
+    receiverId:receiverId,
+
+    type:"comment",
+
+    message:"commented on your post"
+
+  })
+
+}
+
+</script>
  <script>
 
 async function checkUser(){
@@ -956,6 +1029,28 @@ async function setupLikes(){
             user_id:user.id
 
           })
+
+          // POST OWNER FIND
+
+const {
+  data:postData
+} =
+await supabaseClient
+.from("posts")
+.select("user_id")
+.eq("id", postId)
+.single()
+
+// NOTIFICATION
+
+if(postData){
+
+  await sendLikeNotification(
+    postId,
+    postData.user_id
+  )
+
+}
 
           btn.innerText =
           "favorite"
@@ -1593,6 +1688,28 @@ async function addComment(postId){
     comment:text
 
   })
+
+  // POST OWNER FIND
+
+const {
+  data:postData
+} =
+await supabaseClient
+.from("posts")
+.select("user_id")
+.eq("id", postId)
+.single()
+
+// NOTIFICATION
+
+if(postData){
+
+  await sendCommentNotification(
+    postId,
+    postData.user_id
+  )
+
+}
 
   input.value = ""
 

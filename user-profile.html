@@ -33,6 +33,8 @@ body{
   padding-bottom:90px;
 }
 
+/* TOPBAR */
+
 .topbar{
   height:60px;
   border-bottom:1px solid #eee;
@@ -55,6 +57,8 @@ body{
   font-size:20px;
   font-weight:700;
 }
+
+/* PROFILE */
 
 .profile-section{
   padding:20px;
@@ -81,6 +85,7 @@ body{
 
 .stat{
   text-align:center;
+  cursor:pointer;
 }
 
 .stat-number{
@@ -96,6 +101,9 @@ body{
   margin-top:18px;
   font-size:18px;
   font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:5px;
 }
 
 .profile-bio{
@@ -130,6 +138,8 @@ body{
   background:#f3f3f3;
 }
 
+/* POSTS */
+
 .posts-feed{
   margin-top:12px;
 }
@@ -158,6 +168,9 @@ body{
 .username{
   font-size:15px;
   font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:5px;
 }
 
 .caption{
@@ -193,11 +206,144 @@ body{
   color:red;
 }
 
+.blue-tick{
+  width:16px;
+  height:16px;
+  object-fit:contain;
+}
+
+/* FOLLOW MODAL */
+
+.follow-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.5);
+  display:none;
+  z-index:99999;
+  justify-content:flex-end;
+  flex-direction:column;
+}
+
+.follow-box{
+  background:white;
+  border-radius:22px 22px 0 0;
+  height:80vh;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+.follow-tabs{
+  display:flex;
+  border-bottom:1px solid #eee;
+}
+
+.follow-tab{
+  flex:1;
+  text-align:center;
+  padding:16px;
+  font-weight:700;
+  cursor:pointer;
+  color:gray;
+}
+
+.follow-tab.active{
+  color:black;
+  border-bottom:2px solid black;
+}
+
+.follow-search{
+  padding:14px;
+  border-bottom:1px solid #eee;
+}
+
+.follow-search input{
+  width:100%;
+  height:42px;
+  border:none;
+  background:#f3f3f3;
+  border-radius:12px;
+  padding:0 14px;
+  outline:none;
+}
+
+.follow-list{
+  flex:1;
+  overflow:auto;
+}
+
+.follow-user{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px 16px;
+}
+
+.follow-left{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  text-decoration:none;
+  color:black;
+}
+
+.follow-avatar{
+  width:50px;
+  height:50px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.follow-info{
+  display:flex;
+  flex-direction:column;
+}
+
+.follow-name{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  font-weight:700;
+}
+
+.follow-username{
+  color:gray;
+  font-size:13px;
+}
+
+.follow-action{
+  height:36px;
+  border:none;
+  border-radius:10px;
+  padding:0 18px;
+  background:black;
+  color:white;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.following-btn{
+  background:#f3f3f3;
+  color:black;
+}
+
+.close-modal{
+  position:absolute;
+  top:14px;
+  right:14px;
+  background:white;
+  border-radius:50%;
+  padding:4px;
+  cursor:pointer;
+}
+
 </style>
 
 </head>
 
 <body>
+
+<!-- TOPBAR -->
 
 <div class="topbar">
 
@@ -217,6 +363,8 @@ body{
 
 </div>
 
+<!-- PROFILE -->
+
 <div class="profile-section">
 
   <div class="profile-header">
@@ -229,7 +377,10 @@ body{
 
     <div class="profile-stats">
 
-      <div class="stat">
+      <div
+        class="stat"
+        onclick="openFollowModal('posts')"
+      >
 
         <div
           class="stat-number"
@@ -244,7 +395,10 @@ body{
 
       </div>
 
-      <div class="stat">
+      <div
+        class="stat"
+        onclick="openFollowModal('followers')"
+      >
 
         <div
           class="stat-number"
@@ -259,7 +413,10 @@ body{
 
       </div>
 
-      <div class="stat">
+      <div
+        class="stat"
+        onclick="openFollowModal('following')"
+      >
 
         <div
           class="stat-number"
@@ -301,9 +458,7 @@ body{
       Follow
     </button>
 
-    <button
-      class="message-btn"
-    >
+    <button class="message-btn">
       Message
     </button>
 
@@ -311,14 +466,76 @@ body{
 
 </div>
 
+<!-- POSTS -->
+
 <div
   class="posts-feed"
   id="postsFeed"
 ></div>
 
+<!-- FOLLOW MODAL -->
+
+<div
+  class="follow-modal"
+  id="followModal"
+>
+
+  <div class="follow-box">
+
+    <div
+      class="close-modal"
+      onclick="closeFollowModal()"
+    >
+      <span class="material-icons">
+        close
+      </span>
+    </div>
+
+    <div class="follow-tabs">
+
+      <div
+        id="followersTab"
+        class="follow-tab active"
+        onclick="switchTab('followers')"
+      >
+        Followers
+      </div>
+
+      <div
+        id="followingTab"
+        class="follow-tab"
+        onclick="switchTab('following')"
+      >
+        Following
+      </div>
+
+    </div>
+
+    <div class="follow-search">
+
+      <input
+        type="text"
+        placeholder="Search"
+      >
+
+    </div>
+
+    <div
+      class="follow-list"
+      id="followList"
+    ></div>
+
+  </div>
+
+</div>
+
 <script src="assets/js/supabase.js"></script>
+<script src="assets/js/create-notification.js"></script>
 
 <script>
+    // ============================
+// USER PROFILE FULL JS FIXED
+// ============================
 
 const params =
 new URLSearchParams(
@@ -328,56 +545,10 @@ new URLSearchParams(
 const userId =
 params.get("id")
 
+let currentTab =
+"followers"
+
 loadProfile()
-
-// =====================
-// TIME AGO
-// =====================
-
-function timeAgo(dateString){
-
-  const seconds =
-  Math.floor(
-    (
-      new Date() -
-      new Date(dateString)
-    ) / 1000
-  )
-
-  let interval =
-  seconds / 31536000
-
-  if(interval > 1){
-    return Math.floor(interval) + "y"
-  }
-
-  interval = seconds / 2592000
-
-  if(interval > 1){
-    return Math.floor(interval) + "mo"
-  }
-
-  interval = seconds / 86400
-
-  if(interval > 1){
-    return Math.floor(interval) + "d"
-  }
-
-  interval = seconds / 3600
-
-  if(interval > 1){
-    return Math.floor(interval) + "h"
-  }
-
-  interval = seconds / 60
-
-  if(interval > 1){
-    return Math.floor(interval) + "m"
-  }
-
-  return "now"
-
-}
 
 // =====================
 // LOAD PROFILE
@@ -403,35 +574,55 @@ async function loadProfile(){
   .eq("id", userId)
   .single()
 
+  if(!profile){
+    return
+  }
+
   document.getElementById(
     "profileAvatar"
   ).src =
 
-  profile?.avatar_url ||
+  profile.avatar_url ||
   "https://i.pravatar.cc/150"
 
   document.getElementById(
     "profileName"
-  ).innerText =
+  ).innerHTML =
 
-  profile?.username ||
-  "user"
+  `
+    ${profile.username || "user"}
+
+    ${
+      profile.verified_badge
+      ?
+      `
+        <img
+          src="${profile.verified_badge}"
+          class="blue-tick"
+        >
+      `
+      :
+      ""
+    }
+  `
 
   document.getElementById(
     "topUsername"
   ).innerText =
 
-  profile?.username ||
+  profile.username ||
   "user"
 
   document.getElementById(
     "profileBio"
   ).innerText =
 
-  profile?.bio ||
+  profile.bio ||
   "No bio yet"
 
+  // =====================
   // POSTS
+  // =====================
 
   const {
     data:posts
@@ -449,14 +640,16 @@ async function loadProfile(){
   ).innerText =
   posts?.length || 0
 
+  // =====================
   // FOLLOWERS COUNT
+  // =====================
 
-  let {
+  const {
     count:followersCount
   } =
   await supabaseClient
-  .from("followers")
-  .select("id",{
+  .from("follows")
+  .select("*",{
     count:"exact",
     head:true
   })
@@ -467,14 +660,16 @@ async function loadProfile(){
   ).innerText =
   followersCount || 0
 
+  // =====================
   // FOLLOWING COUNT
+  // =====================
 
   const {
     count:followingCount
   } =
   await supabaseClient
-  .from("followers")
-  .select("id",{
+  .from("follows")
+  .select("*",{
     count:"exact",
     head:true
   })
@@ -485,7 +680,9 @@ async function loadProfile(){
   ).innerText =
   followingCount || 0
 
+  // =====================
   // FOLLOW BUTTON
+  // =====================
 
   const followBtn =
   document.getElementById(
@@ -497,20 +694,22 @@ async function loadProfile(){
     followBtn.style.display =
     "none"
 
-  }else{
+  }
+
+  else{
 
     const {
       data:followData
     } =
     await supabaseClient
-    .from("followers")
-    .select("id")
+    .from("follows")
+    .select("*")
     .eq("follower_id", user.id)
     .eq("following_id", userId)
+    .maybeSingle()
 
     let isFollowing =
-    followData &&
-    followData.length > 0
+    !!followData
 
     updateFollowBtn()
 
@@ -519,28 +718,30 @@ async function loadProfile(){
 
       followBtn.disabled = true
 
+      // =====================
       // UNFOLLOW
+      // =====================
 
       if(isFollowing){
 
         await supabaseClient
-        .from("followers")
+        .from("follows")
         .delete()
         .eq("follower_id", user.id)
         .eq("following_id", userId)
 
         isFollowing = false
 
-        followersCount--
-
       }
 
+      // =====================
       // FOLLOW
+      // =====================
 
       else{
 
         await supabaseClient
-        .from("followers")
+        .from("follows")
         .insert([{
 
           follower_id:user.id,
@@ -548,20 +749,31 @@ async function loadProfile(){
 
         }])
 
+        // =====================
+        // NOTIFICATION
+        // =====================
+
+        await createNotification({
+
+          senderId:user.id,
+
+          receiverId:userId,
+
+          type:"follow",
+
+          message:"started following you"
+
+        })
+
         isFollowing = true
 
-        followersCount++
-
       }
-
-      document.getElementById(
-        "followersCount"
-      ).innerText =
-      followersCount
 
       updateFollowBtn()
 
       followBtn.disabled = false
+
+      loadProfile()
 
     }
 
@@ -570,13 +782,11 @@ async function loadProfile(){
       if(isFollowing){
 
         followBtn.innerText =
-        "Unfollow"
+        "Following"
 
-        followBtn.style.background =
-        "#f3f3f3"
-
-        followBtn.style.color =
-        "#000"
+        followBtn.classList.add(
+          "following-btn"
+        )
 
       }
 
@@ -585,11 +795,9 @@ async function loadProfile(){
         followBtn.innerText =
         "Follow"
 
-        followBtn.style.background =
-        "#000"
-
-        followBtn.style.color =
-        "#fff"
+        followBtn.classList.remove(
+          "following-btn"
+        )
 
       }
 
@@ -597,7 +805,9 @@ async function loadProfile(){
 
   }
 
+  // =====================
   // POSTS UI
+  // =====================
 
   const postsFeed =
   document.getElementById(
@@ -608,33 +818,37 @@ async function loadProfile(){
 
   for(const post of posts){
 
-    // LIKES COUNT
+    // =====================
+    // LIKE COUNT
+    // =====================
 
     const {
       count:likesCount
     } =
     await supabaseClient
     .from("likes")
-    .select("id",{
+    .select("*",{
       count:"exact",
       head:true
     })
     .eq("post_id", post.id)
 
+    // =====================
     // USER LIKED
+    // =====================
 
     const {
       data:likedData
     } =
     await supabaseClient
     .from("likes")
-    .select("id")
+    .select("*")
     .eq("post_id", post.id)
     .eq("user_id", user.id)
+    .maybeSingle()
 
     const liked =
-    likedData &&
-    likedData.length > 0
+    !!likedData
 
     postsFeed.innerHTML += `
 
@@ -645,7 +859,7 @@ async function loadProfile(){
           <img
             class="avatar"
             src="${
-              profile?.avatar_url ||
+              profile.avatar_url ||
               'https://i.pravatar.cc/150'
             }"
           >
@@ -655,8 +869,21 @@ async function loadProfile(){
             <div class="username">
 
               ${
-                profile?.username ||
+                profile.username ||
                 "user"
+              }
+
+              ${
+                profile.verified_badge
+                ?
+                `
+                  <img
+                    src="${profile.verified_badge}"
+                    class="blue-tick"
+                  >
+                `
+                :
+                ""
               }
 
             </div>
@@ -671,20 +898,15 @@ async function loadProfile(){
 
             ${
               post.image_url
-
               ?
-
               `
                 <img
                   class="post-image"
                   src="${post.image_url}"
                 >
               `
-
               :
-
               ""
-
             }
 
             <div class="post-actions">
@@ -702,9 +924,7 @@ async function loadProfile(){
                     ""
                   }
                 "
-                data-post="${
-                  post.id
-                }"
+                data-post="${post.id}"
               >
 
                 ${
@@ -721,9 +941,7 @@ async function loadProfile(){
 
             <div
               class="counts"
-              id="likes-${
-                post.id
-              }"
+              id="likes-${post.id}"
             >
 
               ${
@@ -771,28 +989,17 @@ async function setupLikes(){
       async ()=>{
 
         const postId =
-        Number(
-          btn.dataset.post
-        )
+        btn.dataset.post
 
-        // CHECK
-
-        const {
-          data:likedData
-        } =
-        await supabaseClient
-        .from("likes")
-        .select("id")
-        .eq("post_id", postId)
-        .eq("user_id", user.id)
-
-        const liked =
-        likedData &&
-        likedData.length > 0
-
+        // =====================
         // UNLIKE
+        // =====================
 
-        if(liked){
+        if(
+          btn.classList.contains(
+            "liked"
+          )
+        ){
 
           await supabaseClient
           .from("likes")
@@ -800,16 +1007,18 @@ async function setupLikes(){
           .eq("post_id", postId)
           .eq("user_id", user.id)
 
-          btn.innerText =
-          "favorite_border"
-
           btn.classList.remove(
             "liked"
           )
 
+          btn.innerText =
+          "favorite_border"
+
         }
 
+        // =====================
         // LIKE
+        // =====================
 
         else{
 
@@ -822,23 +1031,25 @@ async function setupLikes(){
 
           }])
 
-          btn.innerText =
-          "favorite"
-
           btn.classList.add(
             "liked"
           )
 
+          btn.innerText =
+          "favorite"
+
         }
 
+        // =====================
         // UPDATE COUNT
+        // =====================
 
         const {
           count:newCount
         } =
         await supabaseClient
         .from("likes")
-        .select("id",{
+        .select("*",{
           count:"exact",
           head:true
         })
@@ -857,6 +1068,361 @@ async function setupLikes(){
 
 }
 
+// =====================
+// FOLLOW MODAL
+// =====================
+
+async function openFollowModal(type){
+
+  if(type === "posts"){
+    return
+  }
+
+  currentTab = type
+
+  document.getElementById(
+    "followModal"
+  ).style.display = "flex"
+
+  loadFollowUsers()
+
+}
+
+function closeFollowModal(){
+
+  document.getElementById(
+    "followModal"
+  ).style.display = "none"
+
+}
+
+function switchTab(type){
+
+  currentTab = type
+
+  loadFollowUsers()
+
+}
+
+// =====================
+// LOAD FOLLOW USERS
+// =====================
+
+async function loadFollowUsers(){
+
+  const followList =
+  document.getElementById(
+    "followList"
+  )
+
+  document.getElementById(
+    "followersTab"
+  ).classList.remove(
+    "active"
+  )
+
+  document.getElementById(
+    "followingTab"
+  ).classList.remove(
+    "active"
+  )
+
+  if(currentTab === "followers"){
+
+    document.getElementById(
+      "followersTab"
+    ).classList.add(
+      "active"
+    )
+
+  }
+
+  else{
+
+    document.getElementById(
+      "followingTab"
+    ).classList.add(
+      "active"
+    )
+
+  }
+
+  followList.innerHTML =
+  "Loading..."
+
+  const {
+    data:{ user:currentUser }
+  } =
+  await supabaseClient
+  .auth
+  .getUser()
+
+  let followRows = []
+
+  // =====================
+  // FOLLOWERS
+  // =====================
+
+  if(currentTab === "followers"){
+
+    const { data } =
+    await supabaseClient
+    .from("follows")
+    .select("*")
+    .eq("following_id", userId)
+
+    followRows = data || []
+
+  }
+
+  // =====================
+  // FOLLOWING
+  // =====================
+
+  else{
+
+    const { data } =
+    await supabaseClient
+    .from("follows")
+    .select("*")
+    .eq("follower_id", userId)
+
+    followRows = data || []
+
+  }
+
+  followList.innerHTML = ""
+
+  if(followRows.length === 0){
+
+    followList.innerHTML = `
+      <div style="
+        padding:30px;
+        text-align:center;
+        color:gray;
+      ">
+        No users found
+      </div>
+    `
+
+    return
+
+  }
+
+  // =====================
+  // USER LOOP
+  // =====================
+
+  for(const row of followRows){
+
+    const targetId =
+    currentTab === "followers"
+    ?
+    row.follower_id
+    :
+    row.following_id
+
+    const {
+      data:profile
+    } =
+    await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", targetId)
+    .single()
+
+    if(!profile){
+      continue
+    }
+
+    const {
+      data:isFollow
+    } =
+    await supabaseClient
+    .from("follows")
+    .select("*")
+    .eq("follower_id", currentUser.id)
+    .eq("following_id", targetId)
+    .maybeSingle()
+
+    followList.innerHTML += `
+
+      <div class="follow-user">
+
+        <a
+          href="user-profile.html?id=${profile.id}"
+          class="follow-left"
+        >
+
+          <img
+            src="${
+              profile.avatar_url ||
+              'https://i.pravatar.cc/150'
+            }"
+            class="follow-avatar"
+          >
+
+          <div class="follow-info">
+
+            <div class="follow-name">
+
+              ${
+                profile.username ||
+                "user"
+              }
+
+              ${
+                profile.verified_badge
+                ?
+                `
+                  <img
+                    src="${profile.verified_badge}"
+                    class="blue-tick"
+                  >
+                `
+                :
+                ""
+              }
+
+            </div>
+
+            <div class="follow-username">
+
+              @${profile.username || "user"}
+
+            </div>
+
+          </div>
+
+        </a>
+
+        ${
+          currentUser.id !== profile.id
+          ?
+          `
+            <button
+              class="
+                follow-action
+                ${
+                  isFollow
+                  ?
+                  "following-btn"
+                  :
+                  ""
+                }
+              "
+              onclick="
+                toggleFollow(
+                  '${profile.id}',
+                  this
+                )
+              "
+            >
+
+              ${
+                isFollow
+                ?
+                "Following"
+                :
+                "Follow"
+              }
+
+            </button>
+          `
+          :
+          ""
+        }
+
+      </div>
+
+    `
+
+  }
+
+}
+
+// =====================
+// TOGGLE FOLLOW
+// =====================
+
+async function toggleFollow(
+  targetUserId,
+  button
+){
+
+  const {
+    data:{ user }
+  } =
+  await supabaseClient
+  .auth
+  .getUser()
+
+  const isFollowing =
+  button.innerText ===
+  "Following"
+
+  // =====================
+  // UNFOLLOW
+  // =====================
+
+  if(isFollowing){
+
+    await supabaseClient
+    .from("follows")
+    .delete()
+    .eq("follower_id", user.id)
+    .eq("following_id", targetUserId)
+
+    button.innerText =
+    "Follow"
+
+    button.classList.remove(
+      "following-btn"
+    )
+
+  }
+
+  // =====================
+  // FOLLOW
+  // =====================
+
+  else{
+
+    await supabaseClient
+    .from("follows")
+    .insert([{
+
+      follower_id:user.id,
+      following_id:targetUserId
+
+    }])
+
+    // =====================
+    // NOTIFICATION
+    // =====================
+
+    await createNotification({
+
+      senderId:user.id,
+
+      receiverId:targetUserId,
+
+      type:"follow",
+
+      message:"started following you"
+
+    })
+
+    button.innerText =
+    "Following"
+
+    button.classList.add(
+      "following-btn"
+    )
+
+  }
+
+}
 </script>
 
 </body>
