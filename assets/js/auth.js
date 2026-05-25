@@ -45,7 +45,7 @@ signupForm.addEventListener("submit", async (e)=>{
     }
   ])
 
-  message.innerText = "Signup Success ✅"
+  message.innerText = "Signup Success"
 
   setTimeout(()=>{
 

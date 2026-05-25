@@ -31,7 +31,7 @@ loginForm.addEventListener("submit", async (e)=>{
 
   }
 
-  message.innerText = "Login Success ✅"
+  message.innerText = "Login Success"
 
   setTimeout(()=>{
 
