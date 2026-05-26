@@ -313,7 +313,135 @@ body{
   font-weight:600;
 }
 </style>
+<style>
+  /* STORIES */
 
+.stories-wrapper{
+  border-bottom:1px solid #eee;
+  padding:14px 0;
+  overflow:hidden;
+}
+
+.stories-scroll{
+  display:flex;
+  gap:18px;
+  overflow-x:auto;
+  padding:0 16px;
+}
+
+.stories-scroll::-webkit-scrollbar{
+  display:none;
+}
+
+.story-item{
+  min-width:78px;
+  text-align:center;
+  cursor:pointer;
+}
+
+.story-ring{
+  width:74px;
+  height:74px;
+  border-radius:50%;
+  padding:3px;
+  background:
+  linear-gradient(
+    45deg,
+    #f9ce34,
+    #ee2a7b,
+    #6228d7
+  );
+}
+
+.story-ring img{
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  border:3px solid white;
+  object-fit:cover;
+}
+
+.story-name{
+  margin-top:8px;
+  font-size:13px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.add-story{
+  position:relative;
+}
+
+.add-story-plus{
+  position:absolute;
+  right:2px;
+  bottom:18px;
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  background:#0095f6;
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:3px solid white;
+  font-size:18px;
+  font-weight:bold;
+}
+
+/* STORY VIEWER */
+
+.story-viewer{
+  position:fixed;
+  inset:0;
+  background:black;
+  z-index:999999;
+  display:none;
+  flex-direction:column;
+}
+
+.story-top{
+  padding:18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:white;
+}
+
+.story-content{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.story-image{
+  width:100%;
+  border-radius:20px;
+}
+
+.story-text{
+  color:white;
+  font-size:34px;
+  font-weight:700;
+  text-align:center;
+  line-height:1.5;
+}
+
+.story-bottom{
+  padding:18px;
+  color:white;
+}
+
+.story-viewers{
+  font-size:15px;
+  margin-top:10px;
+  max-height:180px;
+  overflow:auto;
+}
+</style>
 </head>
 
 <body>
@@ -338,12 +466,28 @@ body{
 
 </header>
 
+<!-- STORIES -->
+
+<div class="stories-wrapper">
+
+  <div
+    class="stories-scroll"
+    id="storiesContainer"
+  ></div>
+
+</div>
+
 <!-- FEED -->
 
 <main
 class="feed"
 id="postsContainer"
 >
+
+</main>
+
+
+
 
 </main>
 
@@ -941,6 +1085,180 @@ async function loadFeed(type){
 }
 
 loadPosts()
+
+
+// ======================
+// STORIES
+// ======================
+
+let allStories = []
+
+async function loadStories(){
+
+  const container =
+  document.getElementById(
+    "storiesContainer"
+  )
+
+  const {
+    data:{ user }
+  } =
+  await supabaseClient
+  .auth
+  .getUser()
+
+  container.innerHTML = ""
+
+  // MY STORY
+
+  const {
+    data:myProfile
+  } =
+  await supabaseClient
+  .from("profiles")
+  .select("*")
+  .eq("id", user.id)
+  .single()
+
+  container.innerHTML += `
+
+    <div
+      class="story-item add-story"
+      onclick="addStory()"
+    >
+
+      <div class="story-ring">
+
+        <img
+          src="${
+            myProfile?.avatar_url ||
+            'https://i.pravatar.cc/150'
+          }"
+        >
+
+      </div>
+
+      <div class="add-story-plus">
+        +
+      </div>
+
+      <div class="story-name">
+        Your story
+      </div>
+
+    </div>
+
+  `
+
+  // FOLLOWING IDS
+
+  const {
+    data:following
+  } =
+  await supabaseClient
+  .from("followers")
+  .select("following_id")
+  .eq("follower_id", user.id)
+
+  const ids =
+  following?.map(
+    x => x.following_id
+  ) || []
+
+  ids.push(user.id)
+
+  // STORIES
+
+  const {
+    data:stories
+  } =
+  await supabaseClient
+  .from("stories")
+  .select("*")
+  .in("user_id", ids)
+  .order("created_at", {
+    ascending:false
+  })
+
+  if(!stories){
+    return
+  }
+
+  // GROUP USERS
+
+  const userMap = {}
+
+  for(const story of stories){
+
+    if(!userMap[story.user_id]){
+
+      userMap[story.user_id] = []
+
+    }
+
+    userMap[story.user_id].push(story)
+
+  }
+
+  allStories =
+  Object.values(userMap)
+
+  // RENDER
+
+  let index = 0
+
+  for(const userStories of allStories){
+
+    const firstStory =
+    userStories[0]
+
+    const {
+      data:profile
+    } =
+    await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", firstStory.user_id)
+    .single()
+
+    container.innerHTML += `
+
+      <div
+        class="story-item"
+        onclick="openStory(${index})"
+      >
+
+        <div class="story-ring">
+
+          <img
+            src="${
+              profile?.avatar_url ||
+              'https://i.pravatar.cc/150'
+            }"
+          >
+
+        </div>
+
+        <div class="story-name">
+
+          ${
+            profile?.username ||
+            "user"
+          }
+
+        </div>
+
+      </div>
+
+    `
+
+    index++
+
+  }
+
+}
+
+loadStories()
 
 // LIKE SYSTEM
 
@@ -1768,7 +2086,315 @@ async function addReply(
 // ADD REPLY END
 // ======================
 
+
+
+
+
+
+let currentStoryUser = 0
+let currentStoryIndex = 0
+
+async function openStory(userIndex){
+
+  currentStoryUser = userIndex
+  currentStoryIndex = 0
+
+  showStory()
+
+}
+
+async function showStory(){
+
+  const viewer =
+  document.getElementById(
+    "storyViewer"
+  )
+
+  viewer.style.display =
+  "flex"
+
+  const stories =
+  allStories[currentStoryUser]
+
+  const story =
+  stories[currentStoryIndex]
+
+  const {
+    data:{ user }
+  } =
+  await supabaseClient
+  .auth
+  .getUser()
+
+  // SAVE VIEW
+
+  const {
+    data:alreadyViewed
+  } =
+  await supabaseClient
+  .from("story_views")
+  .select("*")
+  .eq("story_id", story.id)
+  .eq("viewer_id", user.id)
+  .maybeSingle()
+
+  if(!alreadyViewed){
+
+    await supabaseClient
+    .from("story_views")
+    .insert([{
+
+      story_id:story.id,
+      viewer_id:user.id
+
+    }])
+
+  }
+
+  // PROFILE
+
+  const {
+    data:profile
+  } =
+  await supabaseClient
+  .from("profiles")
+  .select("*")
+  .eq("id", story.user_id)
+  .single()
+
+  document.getElementById(
+    "storyUsername"
+  ).innerText =
+
+  profile?.username || "user"
+
+  // CONTENT
+
+  if(story.image_url){
+
+    document.getElementById(
+      "storyContent"
+    ).innerHTML =
+
+    `
+      <img
+        src="${story.image_url}"
+        class="story-image"
+      >
+    `
+
+  }
+
+  else{
+
+    document.getElementById(
+      "storyContent"
+    ).innerHTML =
+
+    `
+      <div class="story-text">
+        ${story.text_content}
+      </div>
+    `
+
+  }
+
+  // VIEWS
+
+  const {
+    data:views
+  } =
+  await supabaseClient
+  .from("story_views")
+  .select("*")
+  .eq("story_id", story.id)
+
+  document.getElementById(
+    "storyViewsCount"
+  ).innerText =
+
+  `${views?.length || 0} views`
+
+  // VIEWERS LIST
+
+  let viewersHTML = ""
+
+  for(const view of views || []){
+
+    const {
+      data:viewerProfile
+    } =
+    await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", view.viewer_id)
+    .single()
+
+    viewersHTML += `
+
+      <div style="
+        margin-top:10px;
+      ">
+
+        ${
+          viewerProfile?.username ||
+          "user"
+        }
+
+      </div>
+
+    `
+
+  }
+
+  document.getElementById(
+    "storyViewers"
+  ).innerHTML =
+
+  viewersHTML
+
+  // AUTO NEXT
+
+  setTimeout(()=>{
+
+    nextStory()
+
+  }, 4000)
+
+}
+
+function closeStoryViewer(){
+
+  document.getElementById(
+    "storyViewer"
+  ).style.display = "none"
+
+}
+
+function nextStory(){
+
+  const stories =
+  allStories[currentStoryUser]
+
+  // NEXT STORY SAME USER
+
+  if(
+    currentStoryIndex <
+    stories.length - 1
+  ){
+
+    currentStoryIndex++
+
+    showStory()
+
+  }
+
+  // NEXT USER
+
+  else if(
+    currentStoryUser <
+    allStories.length - 1
+  ){
+
+    currentStoryUser++
+
+    currentStoryIndex = 0
+
+    showStory()
+
+  }
+
+  else{
+
+    closeStoryViewer()
+
+  }
+
+}
+
+
+
+
+
+async function addStory(){
+
+  const text =
+  prompt(
+    "Enter story text"
+  )
+
+  if(!text){
+    return
+  }
+
+  const {
+    data:{ user }
+  } =
+  await supabaseClient
+  .auth
+  .getUser()
+
+  await supabaseClient
+  .from("stories")
+  .insert([{
+
+    user_id:user.id,
+
+    text_content:text
+
+  }])
+
+  loadStories()
+
+}
+
 </script>
 <script src="assets/js/realtime.js"></script>
+
+
+<!-- STORY VIEWER -->
+
+<div
+  class="story-viewer"
+  id="storyViewer"
+>
+
+  <div class="story-top">
+
+    <div
+      id="storyUsername"
+    >
+      user
+    </div>
+
+    <span
+      class="material-icons"
+      onclick="closeStoryViewer()"
+      style="cursor:pointer"
+    >
+      close
+    </span>
+
+  </div>
+
+  <div
+    class="story-content"
+    id="storyContent"
+  ></div>
+
+  <div class="story-bottom">
+
+    <div id="storyViewsCount">
+      0 views
+    </div>
+
+    <div
+      class="story-viewers"
+      id="storyViewers"
+    ></div>
+
+  </div>
+
+</div>
 </body>
 </html>
